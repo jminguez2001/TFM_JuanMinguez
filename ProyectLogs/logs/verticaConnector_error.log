@@ -1,0 +1,42 @@
+2024-05-27 15:43:50,014 - verticaConnector - ERROR - Failed to establish a connection to the primary server or any backup address.
+Traceback (most recent call last):
+  File "c:\Users\juan.minguez\Desktop\TFM\PythonProyect\DAO\verticaConnector.py", line 17, in __init__
+    with vertica_python.connect(**self.conn_info) as conn:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\juan.minguez\Desktop\TFM\PythonProyect\.venv\Lib\site-packages\vertica_python\vertica\connection.py", line 86, in connect
+    return Connection(kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\juan.minguez\Desktop\TFM\PythonProyect\.venv\Lib\site-packages\vertica_python\vertica\connection.py", line 340, in __init__
+    self.startup_connection()
+  File "C:\Users\juan.minguez\Desktop\TFM\PythonProyect\.venv\Lib\site-packages\vertica_python\vertica\connection.py", line 877, in startup_connection
+    self.write(messages.Startup(user, database, session_label, os_user_name, autocommit, binary_transfer,
+  File "C:\Users\juan.minguez\Desktop\TFM\PythonProyect\.venv\Lib\site-packages\vertica_python\vertica\connection.py", line 640, in write
+    vsocket = self._socket()
+              ^^^^^^^^^^^^^^
+  File "C:\Users\juan.minguez\Desktop\TFM\PythonProyect\.venv\Lib\site-packages\vertica_python\vertica\connection.py", line 484, in _socket
+    raw_socket = self.establish_socket_connection(self.address_list)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\juan.minguez\Desktop\TFM\PythonProyect\.venv\Lib\site-packages\vertica_python\vertica\connection.py", line 628, in establish_socket_connection
+    raise errors.ConnectionError(err_msg)
+vertica_python.errors.ConnectionError: Failed to establish a connection to the primary server or any backup address.
+2024-05-27 15:43:50,033 - verticaConnector - ERROR - Failed to establish a connection to the primary server or any backup address.
+Traceback (most recent call last):
+  File "c:\Users\juan.minguez\Desktop\TFM\PythonProyect\DAO\verticaConnector.py", line 36, in executeQuery
+    with vertica_python.connect(**verticaConnexion.conn_info) as conn:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\juan.minguez\Desktop\TFM\PythonProyect\.venv\Lib\site-packages\vertica_python\vertica\connection.py", line 86, in connect
+    return Connection(kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\juan.minguez\Desktop\TFM\PythonProyect\.venv\Lib\site-packages\vertica_python\vertica\connection.py", line 340, in __init__
+    self.startup_connection()
+  File "C:\Users\juan.minguez\Desktop\TFM\PythonProyect\.venv\Lib\site-packages\vertica_python\vertica\connection.py", line 877, in startup_connection
+    self.write(messages.Startup(user, database, session_label, os_user_name, autocommit, binary_transfer,
+  File "C:\Users\juan.minguez\Desktop\TFM\PythonProyect\.venv\Lib\site-packages\vertica_python\vertica\connection.py", line 640, in write
+    vsocket = self._socket()
+              ^^^^^^^^^^^^^^
+  File "C:\Users\juan.minguez\Desktop\TFM\PythonProyect\.venv\Lib\site-packages\vertica_python\vertica\connection.py", line 484, in _socket
+    raw_socket = self.establish_socket_connection(self.address_list)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\juan.minguez\Desktop\TFM\PythonProyect\.venv\Lib\site-packages\vertica_python\vertica\connection.py", line 628, in establish_socket_connection
+    raise errors.ConnectionError(err_msg)
+vertica_python.errors.ConnectionError: Failed to establish a connection to the primary server or any backup address.
