@@ -8,7 +8,7 @@ import globalParameters
 import random
 
 from helpers.logger import *
-from SQL.SQLstatements import *
+from SQL_python.SQLstatements import *
 from DB_conexion.verticaConnector import *
 from helpers.Utils import random_partition, generate_random_dates
  
