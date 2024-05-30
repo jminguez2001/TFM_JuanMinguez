@@ -34,6 +34,7 @@ if __name__ == '__main__':
     # CreateOrdersFewDATA()
     Study_BOM(BOM)
     DrawingBOM(BOM, 'directed')
+    DrawingBOM(BOM, 'nondirected')
 
     
     logger.info('Se finaliza la ejecución del Main.')
