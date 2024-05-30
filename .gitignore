@@ -1,4 +1,5 @@
 /contexts
-
 # Log files
 *.log
+# Compiled Python bytecode
+*.py[cod]
