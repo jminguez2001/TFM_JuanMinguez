@@ -1,4 +1,4 @@
-WITH PARENTS_No_Priority AS (
+WITH PARENTS_No_Priority AS ( -- PARENTBOMITEMIDs que se identifican posteriormente con BOMITEMIDs de prioridad >1
     SELECT 
         t2.MyBOMID AS t2_MyBOMID, 
         t2.MyBOMITEMID AS t2_MyBOMITEMID, 
@@ -19,7 +19,7 @@ WITH PARENTS_No_Priority AS (
         iPurchase.BOM_fewDATA_MyIDs t1
     ON t1.MyPARENTBOMITEMID = t2.MyBOMITEMID AND t1.MyBOMID = t2.MyBOMID
 ) 
-SELECT 
+SELECT -- Seleccionamos aquellos BOMITEMIDs asociados al PMFPLANGROUPID de los anteriores elementos considerados PARENTS sin prioridad
     t3.MyBOMID AS t3_MyBOMID, 
     t3.MyBOMITEMID AS t3_MyBOMITEMID, 
     t3."LEVEL" AS t3_LEVEL, 

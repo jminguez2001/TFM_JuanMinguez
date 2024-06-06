@@ -20,13 +20,16 @@ CountryTable AS
 subquery AS (
     SELECT *, 
     CASE 
-        WHEN COUNTRY IN ('LTU', 'ITA', 'ESP', 'GBR', 'TUR', 'POL', 'DEU', 'NLD', 'SWE', 'IRL', 'MKD', 'PRT', 'FRA', 'AUT', 'LUX') THEN 0
+        WHEN COUNTRY IN ('BEL', 'DEU', 'PRT', 'MKD', 'CZE', 'AUT', 'SMR', 'FRA', 'LUX', 'BLR', 
+        				'HRV', 'FIN', 'RUS', 'LIE', 'SWE', 'IRL', 'NLD', 'EST', 'GRC', 'LVA', 'SVK', 
+        				'DNK', 'LTU', 'ITA', 'ROU', 'SVN', 'SRB', 'CHE', 'ESP', 'HUN', 'BGR', 'POL') THEN 0 -- Países en Europa
         WHEN COUNTRY = 'CHN' THEN 6
         WHEN COUNTRY = 'IND' THEN 4
         ELSE 2
     END AS LEADTIME
     FROM CountryTable
-) SELECT partialTable.ITEMID, partialTable.COMPANYID, partialTable.SUBSIDIARYID, partialTable.SUPPLIERID, 
+), allButMOQ AS
+(SELECT partialTable.ITEMID, partialTable.COMPANYID, partialTable.SUBSIDIARYID, partialTable.SUPPLIERID, 
 	partialTable.UNITPRICE, partialTable.CURRENCYCODE, partialTable.CURRENCYCODE_LOCAL,
 	partialTable.EXCHANGERATE_EUR, partialTable.EXCHANGERATE_USD, partialTable.EXCHANGERATE_LOCAL, 
 	partialTable.FROMQUANTITY, partialTable.TOQUANTITY, 
@@ -36,7 +39,21 @@ partialTable
 LEFT JOIN
 subquery
 ON partialTable.ITEMID = subquery.ITEMID AND partialTable.ORDERSCALING = subquery.ORDERSCALING
-;
+), MOQPURCHASES AS(
+	SELECT PM.COMPANYID, PM.SUBSIDIARYID, PM.ITEMID, 
+	CASE 
+        WHEN MOQs.MOQ = 0 THEN 1 --Se asume que si la MOQ es 0 es porque no hay y por tanto es lo mismo que asignarle el valor 1
+        ELSE MOQs.MOQ 
+        END AS MOQs 
+	FROM
+	(SELECT DISTINCT COMPANYID, SUBSIDIARYID, ITEMID FROM allButMOQ) AS PM
+	LEFT JOIN
+	(SELECT COMPANYID, SUBSIDIARYID, ITEMID, MOQ FROM fersadv.Item_ALL) AS MOQs
+	ON PM.COMPANYID = MOQs.COMPANYID AND PM.SUBSIDIARYID = MOQs.SUBSIDIARYID AND PM.ITEMID = MOQs.ITEMID
+) SELECT abm.*, moq.MOQs
+FROM 
+allButMOQ abm LEFT JOIN MOQPURCHASES moq
+ON abm.ITEMID = moq.ITEMID;
 
 
 -- Ahora hay que fijar los valores de SUPPLIERID = '' segun las indicaciones dadas

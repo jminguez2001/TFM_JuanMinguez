@@ -30,10 +30,10 @@ if __name__ == '__main__':
     # Ignoring warnings while fixing vertica connection
     warnings.simplefilter(action='ignore', category=UserWarning)
     # We are using select distinct because there are repeated rows due to the itempath -> talk with diego   
-    BOM = executeQuery(verticaConnDEV, "SELECT DISTINCT MyBOMID, MyITEMID, MyPARENTBOMITEMID, MyBOMITEMID, \"LEVEL\" FROM iPurchase.BOM_NoSustitutives WHERE MyBOMID != 12;")
-    # CreateOrdersFewDATA()
-    Study_BOM(BOM)
-    DrawingBOM(BOM)
+    # BOM = executeQuery(verticaConnDEV, "SELECT DISTINCT MyBOMID, MyITEMID, MyPARENTBOMITEMID, MyBOMITEMID, \"LEVEL\" FROM iPurchase.BOM_NoSustitutives WHERE MyBOMID != 12;")
+    CreateOrdersFewDATA()
+    # Study_BOM(BOM)
+    # DrawingBOM(BOM)
 
     
     logger.info('Se finaliza la ejecución del Main.')

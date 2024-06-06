@@ -1,6 +1,6 @@
 CREATE TABLE iPurchase.BOM_NoSustitutives AS 
-WITH NoSustitutives AS (
-    WITH myBOMs AS(
+WITH NoSustitutives AS ( -- Se seleccionan las listas de materiales facilitadas inicialmente sin sustitutivos de la maestro de la empresa
+    WITH myBOMs AS( -- Se seleccionan las BOM que se facilitaron inicialmente
 		SELECT DISTINCT BOMID, SUBSIDIARYID FROM iPurchase.BOM_fewDATA
 	) SELECT
 		ba.BOMID,
@@ -25,7 +25,7 @@ WITH NoSustitutives AS (
 	    ba.BOMCATALOG,
 	    ba.ITEMPATH
 	FROM 
-	myBOMs mb LEFT JOIN fersadv.BOMTree_ALL ba 
+	myBOMs mb LEFT JOIN fersadv.BOMTree_ALL ba -- Se cruzan con la maestro sin sustitutivos
 	ON HASH(mb.BOMID,mb.SUBSIDIARYID)=HASH(ba.BOMID,ba.SUBSIDIARYID)
 	WHERE ba.APPROVED = TRUE
 	AND (ba.BOMITEMID NOT LIKE '67%'
@@ -34,7 +34,7 @@ WITH NoSustitutives AS (
         AND ba.BOMITEMID NOT LIKE '7%'
         AND ba.BOMITEMID NOT LIKE '8%') -- Se desprecian los embalajes
 ),
-NEWBOMITEMID AS (
+NEWBOMITEMID AS ( 
     SELECT
         BOMITEMID,
         ROW_NUMBER() OVER (ORDER BY BOMITEMID) AS MyBOMITEMID
@@ -76,13 +76,13 @@ SELECT
     ns.BOMITEMID,
     ni.MyBOMITEMID,
     ns.LEVEL,
-    ns.PRIORITY,
-    ns.PMFPLANGROUPID,
+    --ns.PRIORITY,
+    --ns.PMFPLANGROUPID,
     ns.MAXIBOQTY,
     ns.UNITID,
     ns.BOMREALQTY,
-    ns.ORDERTYPE,
-    ns.DEFAULTORDERTYPETREE,
+    --ns.ORDERTYPE,
+    --ns.DEFAULTORDERTYPETREE,
     ns.ITEMPATH,
     ns.PATH,
     ns.CATALOG,
@@ -93,3 +93,4 @@ LEFT JOIN NEWBOMITEMID ni ON ns.BOMITEMID = ni.BOMITEMID
 LEFT JOIN NEWBOMID nb ON ns.BOMID = nb.BOMID
 LEFT JOIN (SELECT DISTINCT ITEMID, MyITEMID FROM NEWITEMID) t1 ON ns.ITEMID = t1.ITEMID
 LEFT JOIN (SELECT DISTINCT PARENTBOMITEMID, MyPARENTBOMITEMID FROM NEWPARENTID) t2 ON ns.PARENTBOMITEMID = t2.PARENTBOMITEMID;
+
