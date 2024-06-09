@@ -7,6 +7,11 @@ import matplotlib.patches as mpatches
 
 
 def Study_BOM(BOM):
+    """Study_BOM given a list of BOMs it draws the associated direceted and undirected graphs and checks is it is connected
+
+    Args:
+        BOM (pd.DataFrame): data frame containing the BOMs
+    """
     logger = initLogger(os.path.splitext(os.path.basename(__file__))[0], os.path.splitext(os.path.basename(__file__))[0])
     logger.info("Se generan los grafos dirigidos y no dirigidos...")
     G = GenerateGraph(BOM, typeG_ND = True)
@@ -15,9 +20,6 @@ def Study_BOM(BOM):
 
 
     
-
-
-
 
 
 def GenerateGraph(BOM, typeG_ND):

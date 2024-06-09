@@ -106,7 +106,7 @@ def generateOrders_df(pl_CustomerPrices, pl_master, MonthlyQTY, StableMQTY, NotS
         "ORDERTYPE": ordertype,
         "CUSTOMERID": customerid,
         "QUANTITY": quantity,
-        "UNIT_PRICE_EUR": unit_price_eur,
+        "UNITPRICE_EUR": unit_price_eur,
         "END_DATE": end_date
     }
     )
@@ -166,7 +166,7 @@ def CreateOrdersFewDATA():
     pl_Orders = generateOrders_df(pl_CustomerPrices, pl_BOMs, QTY_Month, StableMonthlyQTY, NotStableMonthlyQTY, 0.4)
 
     logger.info(f'Se procede a añadir los datos a {schema}.{table}')
-    #pdfToVertica(verticaConnDEV, schema, table, pl_Orders.to_pandas())
+    pdfToVertica(verticaConnDEV, schema, table, pl_Orders.to_pandas())
     
     logger.info('Se finaliza el proceso de generar ordenes de pedido.')
     
