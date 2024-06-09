@@ -35,11 +35,13 @@ if __name__ == '__main__':
     MixedItems = executeQuery(verticaConnDEV, query_identify_MixedItems)
     PurchaseItems = executeQuery(verticaConnDEV, query_identify_PurchaseItems)
     RouteItems = executeQuery(verticaConnDEV, query_identify_RouteItems)
+    Orders = executeQuery(verticaConnDEV, "SELECT * FROM iPurchase.SalesOrders")
 
     BOM.to_pickle('./DataFiles/BOM.pkl')
     MixedItems.to_pickle('./DataFiles/MixedItems.pkl')
     PurchaseItems.to_pickle('./DataFiles/PurchaseItems.pkl')
     RouteItems.to_pickle('./DataFiles/RouteItems.pkl')
+    Orders.to_pickle('./DataFiles/Orders.pkl')
     
     logger.info('Se finaliza la ejecución.')
  
