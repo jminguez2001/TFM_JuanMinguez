@@ -3,7 +3,10 @@ import base64
 import warnings
 import pandas as pd
 import copy
-from  DB_conexion.verticaConnector import *
+import os
+import globalParameters
+from helpers.logger import initLogger
+from  DB_conexion.verticaConnector import verticaConn, executeQuery
 from SQL_python.SQLstatements import *
 
 
