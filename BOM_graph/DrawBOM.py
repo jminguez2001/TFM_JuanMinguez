@@ -73,34 +73,24 @@ def Draw_NonDirectedGraph(BOM, logger):
     G = nx.Graph()
 
     logger.info('Se añaden los ejes...')
+    #Add nodes
+    nodes = set(BOM['MyBOMITEMID'])
+    G.add_nodes_from(nodes)
     # Add edges from MyBOMITEMID to MyPARENTBOMITEMID
     for _, row in BOM.iterrows():
         if row['MyPARENTBOMITEMID'] != row['MyBOMITEMID']: # Avoid self-edges 
             G.add_edge(row['MyPARENTBOMITEMID'], row['MyBOMITEMID'])
 
     logger.info('Se dibuja el grafo...')
-    # Dynamically create a color map based on the unique values of LEVEL
-    unique_levels = sorted(BOM['LEVEL'].unique())
-    colors = plt.cm.viridis  # Using viridis colormap for example
-    level_color_map = {level: colors(i / (len(unique_levels) - 1)) for i, level in enumerate(unique_levels)}
-
-    # Assign colors to nodes based on their LEVEL, ensuring we only color nodes present in the graph
-    node_colors = []
-    for node in G.nodes:
-        try:
-            color = level_color_map[BOM.loc[BOM['MyBOMITEMID'] == node, 'LEVEL'].values[0]]
-        except IndexError:
-            color = 'gray'  # Default color for nodes not found in BOM
-        node_colors.append(color)
+    # Assign default color to all nodes
+    node_colors = 'skyblue'  # Example default color
 
     # Positioning the nodes
     pos = nx.spring_layout(G)  
     labels = {row['MyBOMITEMID']: row['MyBOMITEMID'] for _, row in BOM.iterrows()}
-    legend_handles = [mpatches.Patch(color=level_color_map[level], label=f'Level {level}') for level in unique_levels]
 
     # Draw the graph
     nx.draw(G, pos, labels=labels, with_labels=True, node_color=node_colors, node_size=500, font_size=10)
-    plt.legend(handles=legend_handles, title="Levels")
     plt.show()
 
 def DrawDirectGraph(BOM, logger):

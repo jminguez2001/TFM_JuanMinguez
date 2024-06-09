@@ -7,7 +7,7 @@ import matplotlib.patches as mpatches
 
 
 def Study_BOM(BOM):
-    """Study_BOM given a list of BOMs it draws the associated direceted and undirected graphs and checks is it is connected
+    """Study_BOM given a list of BOMs checks if its associated graph is it is connected
 
     Args:
         BOM (pd.DataFrame): data frame containing the BOMs
@@ -37,6 +37,10 @@ def GenerateGraph(BOM, typeG_ND):
         G = nx.Graph()
     else:
         G = nx.DiGraph()
+    
+    #Add nodes
+    nodes = set(BOM['MyBOMITEMID'])
+    G.add_nodes_from(nodes)
     
     # Add edges from MyBOMITEMID to MyPARENTBOMITEMID
     for _, row in BOM.iterrows():
