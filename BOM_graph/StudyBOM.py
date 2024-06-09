@@ -22,7 +22,7 @@ def Study_BOM(BOM):
     
 
 
-def GenerateGraph(BOM, typeG_ND):
+def GenerateGraph(BOM, typeG_ND, connected = False):
     """GenerateGraph Given a data frame of BOMs it generates the Graph associated
 
     Args:
@@ -45,6 +45,12 @@ def GenerateGraph(BOM, typeG_ND):
     # Add edges from MyBOMITEMID to MyPARENTBOMITEMID
     for _, row in BOM.iterrows():
         if row['MyPARENTBOMITEMID'] != row['MyBOMITEMID']:
-            G.add_edge(row['MyBOMITEMID'], row['MyPARENTBOMITEMID'])
+            G.add_edge(row['MyPARENTBOMITEMID'], row['MyBOMITEMID'])
+    
+    if not typeG_ND and connected: # Si es conexo y dirigido generamos las capas
+       # Assign layer attribute to nodes based on reversed topological generations
+        for layer, nodes in enumerate(nx.topological_generations(G)):
+            for node in nodes:
+                G.nodes[node]["layer"] = layer  
     
     return G
