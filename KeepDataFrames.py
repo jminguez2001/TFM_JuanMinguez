@@ -31,17 +31,19 @@ if __name__ == '__main__':
     warnings.simplefilter(action='ignore', category=UserWarning)
     
     # We are using select distinct because there are repeated rows due to the itempath -> talk with diego   
-    BOM = executeQuery(verticaConnDEV, "SELECT DISTINCT MyBOMID, MyITEMID, MyPARENTBOMITEMID, MyBOMITEMID, \"LEVEL\" FROM iPurchase.BOM_NoSustitutives;")
+    BOM = executeQuery(verticaConnDEV, "SELECT DISTINCT MyBOMID, MyITEMID, MyPARENTBOMITEMID, MyBOMITEMID, \"LEVEL\", MAXIBOQTY FROM iPurchase.BOM_NoSustitutives;")
     MixedItems = executeQuery(verticaConnDEV, query_identify_MixedItems)
     PurchaseItems = executeQuery(verticaConnDEV, query_identify_PurchaseItems)
     RouteItems = executeQuery(verticaConnDEV, query_identify_RouteItems)
     Orders = executeQuery(verticaConnDEV, "SELECT * FROM iPurchase.SalesOrders")
+    Stock = executeQuery(verticaConnDEV, query_getSTOCK)
 
     BOM.to_pickle('./DataFiles/BOM.pkl')
     MixedItems.to_pickle('./DataFiles/MixedItems.pkl')
     PurchaseItems.to_pickle('./DataFiles/PurchaseItems.pkl')
     RouteItems.to_pickle('./DataFiles/RouteItems.pkl')
     Orders.to_pickle('./DataFiles/Orders.pkl')
+    Stock.to_pickle('./DataFiles/Stock.pkl')
     
     logger.info('Se finaliza la ejecución.')
  
