@@ -1,4 +1,5 @@
 import pandas as pd
+from TOY.TablasAsDf import chargeToy
 
 
 def chargeEnv(mode = "default"):
@@ -15,7 +16,8 @@ def chargeEnv(mode = "default"):
             Orders['END_DATE'] = pd.to_datetime(Orders['END_DATE'])
             Stock = pd.read_pickle('./DataFiles/Stock.pkl')
             Stock = Stock[Stock['MyBOMITEMID'] != 44].reset_index(drop=True)
-            return (BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock)
+            Tenv = 13
+            return (BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv)
         case "NoStock":
             BOM = pd.read_pickle('./DataFiles/BOM.pkl')
             BOM = BOM[BOM['MyBOMITEMID'] != 44].reset_index(drop=True) # Delete non connected element
@@ -28,5 +30,9 @@ def chargeEnv(mode = "default"):
             Orders['END_DATE'] = pd.to_datetime(Orders['END_DATE'])
             Stock = pd.read_pickle('./DataFiles/Stock.pkl')
             Stock = Stock[Stock['MyBOMITEMID'] != 44].reset_index(drop=True)
-            Stock[""]
-            return (BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock)
+            Stock["STOCK"] = 0
+            Tenv = 13
+            return (BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv)
+        case "TOY":
+            BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock = chargeToy()
+            return (BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, 5)
