@@ -36,6 +36,7 @@ def chargeToy():
         'MyBOMITEMID': [1, 4, 6],
         'RUNTIME_COST': [20, 5, 10],
         'SETUP_COST': [0, 0, 0],
+        'LEADTIME_ROUTES': [0, 0, 0],
         'MOQ_Fabricacion': [10, 8, 15],
         'UNITPRICE_Compra': [30, 5, 12],
         'LEADTIME': [1, 2, 1],
@@ -45,6 +46,7 @@ def chargeToy():
         'MyBOMITEMID': 'int64',
         'RUNTIME_COST': 'int64',
         'SETUP_COST': 'int64',
+        'LEADTIME_ROUTES': 'int64',
         'MOQ_Fabricacion': 'int64',
         'UNITPRICE_Compra': 'int64',
         'LEADTIME': 'int64',
@@ -70,12 +72,14 @@ def chargeToy():
         'MyBOMITEMID': [2, 3, 7],
         'RUNTIME_COST': [10, 15, 5],
         'SETUP_COST': [0, 0, 0],
+        'LEADTIME': [0, 0, 0],
         'MOQ_Fabricacion': [14, 12, 10]
     }
     data_types_routes = {
         'MyBOMITEMID': 'int64',
         'RUNTIME_COST': 'int64',
         'SETUP_COST': 'int64',
+        'LEADTIME': 'int64',
         'MOQ_Fabricacion': 'int64'
     }
     RouteItems = pd.DataFrame(RouteItems_dict).astype(data_types_routes)

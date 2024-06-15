@@ -3,3 +3,6 @@
 *.log
 # Compiled Python bytecode
 *.py[cod]
+
+# Global parameters
+globalParameters.py
