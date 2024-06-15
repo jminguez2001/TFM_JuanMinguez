@@ -1,5 +1,5 @@
 import pandas as pd
-from TOY.TablasAsDf import chargeToy
+from Environments.Df_TOY import chargeToy
 
 
 def chargeEnv(mode = "default"):

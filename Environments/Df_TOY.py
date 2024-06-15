@@ -1,6 +1,11 @@
 import pandas as pd
 
 def chargeToy():
+    """Define los valores del entorno de juguete
+
+    Returns:
+        pd.DataFrame: diferentes df con los datos del modelo de juguete
+    """
     BOM_dict = {
                 'MyBOMID': [1, 1, 1, 1, 1, 
                             2, 2, 2, 2, 2, 2, 2, 2, 
@@ -35,9 +40,9 @@ def chargeToy():
     MixedItems_dict = {
         'MyBOMITEMID': [1, 4, 6],
         'RUNTIME_COST': [20, 5, 10],
-        'SETUP_COST': [0, 0, 0],
-        'LEADTIME_ROUTES': [0, 0, 0],
-        'MOQ_Fabricacion': [10, 8, 15],
+        'SETUP_COST': [100, 50, 50],
+        'LEADTIME_ROUTES': [1, 1, 1],
+        'MOQ_Fabricacion': [40, 35, 35],
         'UNITPRICE_Compra': [30, 5, 12],
         'LEADTIME': [1, 2, 1],
         'MOQ_Compra': [15, 10, 10]
@@ -71,9 +76,9 @@ def chargeToy():
     RouteItems_dict = {
         'MyBOMITEMID': [2, 3, 7],
         'RUNTIME_COST': [10, 15, 5],
-        'SETUP_COST': [0, 0, 0],
-        'LEADTIME': [0, 0, 0],
-        'MOQ_Fabricacion': [14, 12, 10]
+        'SETUP_COST': [100, 100, 50],
+        'LEADTIME': [1, 2, 0],
+        'MOQ_Fabricacion': [200, 75, 75]
     }
     data_types_routes = {
         'MyBOMITEMID': 'int64',
@@ -130,4 +135,4 @@ def chargeToy():
         'STOCK': 'int64'
     })
     
-    return (BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock)
+    return BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock

@@ -4,7 +4,24 @@ import pandas as pd
 import datetime as dt
 from BOM_graph.StudyBOM import GenerateGraph
 
-def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, leadtime_purchase = True, leadtime_routes = False):
+def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, Param_MOQ = True, leadtime_purchase = True, leadtime_routes = False):
+    """ Carga los conjuntos y parametros del sistema en funcion de los datos de entrada y la configuracion introducida
+
+    Args:
+        BOM (pd.DataFrame): _description_
+        MixedItems (_type_): _description_
+        PurchaseItems (_type_): _description_
+        RouteItems (_type_): _description_
+        Orders (_type_): _description_
+        Stock (_type_): _description_
+        Tenv (_type_): _description_
+        Param_MOQ (bool, optional): _description_. Defaults to True.
+        leadtime_purchase (bool, optional): _description_. Defaults to True.
+        leadtime_routes (bool, optional): _description_. Defaults to False.
+
+    Returns:
+        _type_: _description_
+    """
     # Grafo
     G = GenerateGraph(BOM, typeG_ND = False, connected = True)
 
@@ -74,8 +91,12 @@ def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, 
         B.append(period_matrixB)
     
     # Costes de activacion
-    c_act = {**dict(zip(RouteItems["MyBOMITEMID"], RouteItems["SETUP_COST"])), 
-    **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["SETUP_COST"]))}
+    if Param_MOQ:
+        c_act = {**dict.fromkeys(RouteItems["MyBOMITEMID"], 0), 
+        **dict.fromkeys(MixedItems["MyBOMITEMID"], 0)}
+    else:    
+        c_act = {**dict(zip(RouteItems["MyBOMITEMID"], RouteItems["SETUP_COST"])), 
+        **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["SETUP_COST"]))}
         
     # Costes por unidad
     c1 = {**dict(zip(RouteItems["MyBOMITEMID"], RouteItems["RUNTIME_COST"])), 

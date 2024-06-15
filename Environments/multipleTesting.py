@@ -4,13 +4,29 @@ import datetime as dt
 import globalParameters
 from gurobipy import *
 from Environments.chargeEnvironment import chargeEnv
-import matplotlib.pyplot as plt
 from Environments.chargeSetParams import charge_SetParams
 
-def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, leadtime_purchase = True, leadtime_routes = False):
-    # Definicion de los parametros del entorno gurobi
 
-    #Dado el número de variables de este modelo, es necesario utilizar gurobi con una licencia académica (se obtiene gratuitamente en la web de gurobi)
+
+def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, leadtime_purchase = True, leadtime_routes = False, c_act_Multiplier = 1, lt_Multiplier = 1, ltf_Multiplier = 1):
+    """Simula el modelo para la configuracion introducida
+
+    Args:
+        mode (str, optional): Entorno de simulacion, es decir, los datos de entrada. Defaults to "TOY".
+        Available_Stock (bool, optional): Si se considera stock inicial o no. Defaults to True.
+        Param_MOQ (bool, optional): Si se considera las MOQ1 como parametros o se deja libre como variable. Defaults to True.
+        leadtime_purchase (bool, optional): Si se consideran lead times de compra o no. Defaults to True.
+        leadtime_routes (bool, optional): Si se consideran lead times de fabricacion o no. Defaults to False.
+        c_act_Multiplier (int, optional): multiplicador de los costes de activacion. Defaults to 1.
+        lt_Multiplier (int, optional): multiplicador de los lead time de compra. Defaults to 1.
+        ltf_Multiplier (int, optional): multiplicador de los lead time de fabricacion. Defaults to 1.
+
+    Returns:
+        float: parametros que describen la solucion (% de unidades demandadas no satisfechas, % de pedidos no satisfechos, valor optimo de la f.objetivo)
+    """
+    
+    
+    # Definicion de los parametros del entorno gurobi
     params = globalParameters.params
     env = Env(params = params)
     
@@ -23,9 +39,17 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, leadtime_purcha
 
     
     if Param_MOQ:
-        NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, MOQ1, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, leadtime_purchase, leadtime_routes)
+        NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, MOQ1, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, Param_MOQ, leadtime_purchase, leadtime_routes)
     else:
-        NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, _, _, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, leadtime_purchase, leadtime_routes)
+        NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, _, _, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, Param_MOQ, leadtime_purchase, leadtime_routes)
+    
+    
+    # Multiplicador de los costes de activacion:
+    c_act = {key: value*c_act_Multiplier for key, value in c_act.items()}
+    
+    # Multiplicador LeadTimes
+    lt = {key: int(value*lt_Multiplier) for key, value in lt.items()} # Me aseguro de que la solucion es entera, ejemplo int(3*0.5) = 1
+    ltf = {key: int(value*ltf_Multiplier) for key, value in ltf.items()}
     
     # Inicialización del modelo
     modelo = Model("Ejercicio", env = env)    
@@ -296,6 +320,4 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, leadtime_purcha
                     totalUds += D[t][item_indices[i],customer_indices[r]]
 
 
-    print(udsNoSatisfecha/totalUds*100)
-    print(NoSatisfecha/totalPedidos*100)
-    print(modelo.getAttr("ObjVal"))        
+    return udsNoSatisfecha/totalUds*100, NoSatisfecha/totalPedidos*100, modelo.getAttr("ObjVal")
