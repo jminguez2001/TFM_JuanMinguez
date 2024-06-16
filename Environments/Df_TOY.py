@@ -40,7 +40,7 @@ def chargeToy():
     MixedItems_dict = {
         'MyBOMITEMID': [1, 4, 6],
         'RUNTIME_COST': [20, 5, 10],
-        'SETUP_COST': [100, 50, 50],
+        'SETUP_COST': [200, 120, 150],
         'LEADTIME_ROUTES': [1, 1, 1],
         'MOQ_Fabricacion': [40, 35, 35],
         'UNITPRICE_Compra': [30, 5, 12],
@@ -76,7 +76,7 @@ def chargeToy():
     RouteItems_dict = {
         'MyBOMITEMID': [2, 3, 7],
         'RUNTIME_COST': [10, 15, 5],
-        'SETUP_COST': [100, 100, 50],
+        'SETUP_COST': [150, 150, 80],
         'LEADTIME': [1, 2, 0],
         'MOQ_Fabricacion': [200, 75, 75]
     }

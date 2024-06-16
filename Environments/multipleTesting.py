@@ -41,7 +41,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, leadtime_purcha
     if Param_MOQ:
         NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, MOQ1, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, Param_MOQ, leadtime_purchase, leadtime_routes)
     else:
-        NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, _, _, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, Param_MOQ, leadtime_purchase, leadtime_routes)
+        NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, _, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, Param_MOQ, leadtime_purchase, leadtime_routes)
     
     
     # Multiplicador de los costes de activacion:
@@ -71,9 +71,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, leadtime_purcha
 
     if not Param_MOQ:
         MOQ1_indices = [i for i in K1+K3]
-        MOQ2_indices = [i for i in K2+K3]
-        MOQ1 = modelo.addVars(MOQ1_indices, lb = 0, vtype= GRB.INTEGER, name = "MOQ1") 
-        MOQ2 =  modelo.addVars(MOQ2_indices, lb = 0, vtype= GRB.INTEGER, name = "MOQ2")
+        MOQ1 = modelo.addVars(MOQ1_indices, lb = 1, vtype= GRB.INTEGER, name = "MOQ1")
 
     modelo.update()
     
