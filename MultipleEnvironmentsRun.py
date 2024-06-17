@@ -7,12 +7,12 @@ if __name__ == '__main__':
     
     # data = ["TOY"]
     A_Stock = [True]
-    MOQs_AsParms = [True, False]
-    leadtime_purchase = [True, False]
-    leadtime_routes = [True, False]
-    c_act_Multiplier = [1, 2]
-    lt_multipliers = [1, 0.5, 2]
-    ltf_multipliers = [1, 0.5, 2]
+    MOQs_AsParms = [True]
+    leadtime_purchase = [True]
+    leadtime_routes = [False]
+    c_act_Multiplier = [1]
+    lt_multipliers = [1]
+    ltf_multipliers = [1]
     
     
     results = pd.DataFrame(columns=['Environment', 'Available_Stock', 'Param_MOQ', 'leadtime_purchase', 'leadtime_routes',
@@ -30,7 +30,8 @@ if __name__ == '__main__':
                         for ltm in lt_multipliers_aux:
                             for ltfm in ltf_multipliers_aux:  
                                 PerCent_udsNoSatisfechas, PerCent_PedidosNoSatisfechos, optSol  = Test(mode = "TOY", Available_Stock = s, Param_MOQ = m, 
-                                                                                                    leadtime_purchase = lp, leadtime_routes = lr, 
+                                                                                                    leadtime_purchase = lp, leadtime_routes = lr,
+                                                                                                    Param_I_0 = True, Costes_invent = True, Invent_Capacity = True, Fabrica_Capacity = True,  
                                                                                                     c_act_Multiplier = cMult, lt_Multiplier = ltm, ltf_Multiplier = ltfm)
                                 new_row = {'Environment': "TOY", 'Available_Stock': s, 'Param_MOQ': m, 'leadtime_purchase': lp, 'leadtime_routes': lr,
                                      'c_act_Multiplier': cMult, 'lt_Multiplier': ltm,  'ltf_Multiplier': ltfm,       
@@ -38,4 +39,4 @@ if __name__ == '__main__':
                                 results = results._append(new_row, ignore_index=True)
     
     print(results)
-    results.to_excel("./Resultados/RESULTADOS.xlsx", sheet_name = "resultados", index=False)
+    # results.to_excel("./Resultados/RESULTADOS.xlsx", sheet_name = "resultados", index=False)

@@ -103,7 +103,17 @@ def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, 
     **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["RUNTIME_COST"]))}
     c2 = {**dict(zip(PurchaseItems["MyBOMITEMID"], PurchaseItems["UNITPRICE_Compra"])), 
     **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["UNITPRICE_Compra"]))}
-
+    
+    # Costes de inventario
+    c_invent = {**dict(zip(Stock["MyBOMITEMID"], Stock["Invent_Cost"]))}
+    
+    # Capacidad de inventario
+    Q_invent = {**dict(zip(Stock["MyBOMITEMID"], Stock["CAPACITY"]))}
+    
+    # Capacidad de fabricacion
+    Q_fabrica = {**dict(zip(RouteItems["MyBOMITEMID"], RouteItems["CAPACITY"])), 
+    **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["CAPACITY"]))}
+    
     # MOQs
     MOQ1 = {**dict(zip(RouteItems["MyBOMITEMID"], RouteItems["MOQ_Fabricacion"])), 
     **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["MOQ_Fabricacion"]))}
@@ -143,4 +153,4 @@ def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, 
             else:
                 alpha[i][j] = 0
 
-    return (NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, MOQ1, MOQ2, lt, ltf, I_0, alpha)
+    return (NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, c_invent, Q_invent, Q_fabrica, MOQ1, MOQ2, lt, ltf, I_0, alpha)

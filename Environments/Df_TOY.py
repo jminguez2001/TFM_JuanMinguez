@@ -39,13 +39,14 @@ def chargeToy():
     
     MixedItems_dict = {
         'MyBOMITEMID': [1, 4, 6],
-        'RUNTIME_COST': [20, 5, 10],
-        'SETUP_COST': [200, 120, 150],
+        'RUNTIME_COST': [0.3, 0.5, 0.12],
+        'SETUP_COST': [200, 80, 80],
         'LEADTIME_ROUTES': [1, 1, 1],
+        'CAPACITY': [200, 3000, 3000],
         'MOQ_Fabricacion': [40, 35, 35],
-        'UNITPRICE_Compra': [30, 5, 12],
+        'UNITPRICE_Compra': [60, 30, 30],
         'LEADTIME': [1, 2, 1],
-        'MOQ_Compra': [15, 10, 10]
+        'MOQ_Compra': [15, 20, 50]
     }
     data_types_mixed = {
         'MyBOMITEMID': 'int64',
@@ -78,6 +79,7 @@ def chargeToy():
         'RUNTIME_COST': [10, 15, 5],
         'SETUP_COST': [150, 150, 80],
         'LEADTIME': [1, 2, 0],
+        'CAPACITY': [200, 200, 3000],
         'MOQ_Fabricacion': [200, 75, 75]
     }
     data_types_routes = {
@@ -126,7 +128,9 @@ def chargeToy():
     
     Stock_dict = {
         'MyBOMITEMID': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-        'STOCK': [0, 15, 10, 20, 15, 10, 2, 10, 70, 50, 100]
+        'STOCK': [0, 15, 10, 20, 15, 10, 2, 10, 70, 50, 100],
+        'Invent_Cost' : [50, 50, 50, 10, 7, 7, 10, 5, 2, 2, 2],
+        'CAPACITY': [100, 100, 100, 150, 150, 150, 150, 300, 500, 500, 500]
     }
 
     # Create the DataFrame with specified data types

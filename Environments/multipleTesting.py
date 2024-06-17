@@ -8,7 +8,11 @@ from Environments.chargeSetParams import charge_SetParams
 
 
 
-def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, leadtime_purchase = True, leadtime_routes = False, c_act_Multiplier = 1, lt_Multiplier = 1, ltf_Multiplier = 1):
+def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, 
+         leadtime_purchase = True, leadtime_routes = False,
+         Param_I_0 = True, Costes_invent = False, Invent_Capacity = False
+         , Fabrica_Capacity = False 
+         , c_act_Multiplier = 1, lt_Multiplier = 1, ltf_Multiplier = 1):
     """Simula el modelo para la configuracion introducida
 
     Args:
@@ -37,12 +41,17 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, leadtime_purcha
     if not Available_Stock:
         Stock["STOCK"] = 0
 
+    NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, c_invent, Q_invent, Q_fabrica, MOQ1, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, Param_MOQ, leadtime_purchase, leadtime_routes)
     
-    if Param_MOQ:
-        NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, MOQ1, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, Param_MOQ, leadtime_purchase, leadtime_routes)
-    else:
-        NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, _, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, Param_MOQ, leadtime_purchase, leadtime_routes)
-    
+    if not Costes_invent:
+        for i in NN:
+            c_invent[i] = 0
+    if not Invent_Capacity:
+        for i in NN:
+            Q_invent[i] = 50000
+    if not Fabrica_Capacity:
+        for i in K1+K3:
+            Q_fabrica[i] = 50000
     
     # Multiplicador de los costes de activacion:
     c_act = {key: value*c_act_Multiplier for key, value in c_act.items()}
@@ -72,6 +81,9 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, leadtime_purcha
     if not Param_MOQ:
         MOQ1_indices = [i for i in K1+K3]
         MOQ1 = modelo.addVars(MOQ1_indices, lb = 1, vtype= GRB.INTEGER, name = "MOQ1")
+    if not Param_I_0:
+        I_0_indices = [i for i in NN]
+        I_0 = modelo.addVars(I_0_indices, lb = 0, vtype= GRB.INTEGER, name = "I_0") 
 
     modelo.update()
     
@@ -290,6 +302,18 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, leadtime_purcha
     r9 = modelo.addConstrs(
         (y[i,t] <= z2[i,t]*42000 for i in K2+K3 for t in range(1, len(T))
         ),name="R9" )
+    
+    # Restricciones de capacidad de Inventario
+    if not Param_I_0:
+        r10 = modelo.addConstrs (
+            (I_0[i] <= Q_invent[i] for i in NN), name="R10" )
+
+    r11 = modelo.addConstrs (
+        (It[i, t] <= Q_invent[i] for i in NN for t in range(1, len(T))), name="R11" )
+
+    # Restricciones de capacidad de fabrica
+    r12 = modelo.addConstrs (
+        (x[i, t] <= Q_fabrica[i] for i in K1+K3 for t in range(1, len(T))), name="R12" )
 
     modelo.update()
     
@@ -298,6 +322,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, leadtime_purcha
                                 - quicksum(c1[i]*x[i,t] for i in K1+K3)
                                 - quicksum(c2[i]*y[i,t] for i in K2+K3)
                                 - quicksum(c_act[i]*z1[i,t] for i in K1+K3)
+                                - quicksum(c_invent[i]*It[i,t] for i in NN)
                                 for t in range(1, len(T))), sense = GRB.MAXIMIZE)
     
     # Optimizacion
@@ -316,6 +341,8 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, leadtime_purcha
                         udsNoSatisfecha += D[t][item_indices[i],customer_indices[r]]
                     totalPedidos += 1
                     totalUds += D[t][item_indices[i],customer_indices[r]]
+    sol = modelo.getAttr("ObjVal")
+    modelo.close()
+    env.close()
 
-
-    return udsNoSatisfecha/totalUds*100, NoSatisfecha/totalPedidos*100, modelo.getAttr("ObjVal")
+    return udsNoSatisfecha/totalUds*100, NoSatisfecha/totalPedidos*100, sol
