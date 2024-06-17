@@ -341,8 +341,21 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
                         udsNoSatisfecha += D[t][item_indices[i],customer_indices[r]]
                     totalPedidos += 1
                     totalUds += D[t][item_indices[i],customer_indices[r]]
+    
+    # Se guardan las soluciones
+    solI = {(i, t): None for i in NN for t in range(0, len(T))}
+    solX = {(i, t): None for i in set(K1 + K3) for t in range(1, len(T))}
+    solY = {(i, t): None for i in set(K2 + K3) for t in range(1, len(T))}
+    solW = {(i,r,t): None for i in set(LEVEL0) for r in R for t in range(1, len(T))}
+    solI.update({(i, 0): (I_0[i] if Param_I_0 else I_0[i].X) for i in NN})
+    solX.update({(i, t): x[i, t].X for t in range(1, len(T)) for i in set(K1 + K3)})
+    solY.update({(i, t): y[i, t].X for t in range(1, len(T)) for i in set(K2 + K3)})
+    solI.update({(i, t): It[i, t].X for t in range(1, len(T)) for i in NN})
+    solW.update({(i,r,t): w[i,r,t].X for i in set(LEVEL0) for r in R for t in range(1, len(T))})
+    
+    
     sol = modelo.getAttr("ObjVal")
     modelo.close()
     env.close()
 
-    return udsNoSatisfecha/totalUds*100, NoSatisfecha/totalPedidos*100, sol
+    return udsNoSatisfecha/totalUds*100, NoSatisfecha/totalPedidos*100, sol, solI, solX, solY, solW, D, item_indices, customer_indices, K1, K2, K3, T
