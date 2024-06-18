@@ -297,7 +297,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
 
     # Restricciones de activacion de variables binarias
     r8 = modelo.addConstrs(
-        (x[i,t] <= z1[i,t]*42000 for i in K1+K3 for t in range(1, len(T))
+        (x[i,t] <= z1[i,t]*Q_fabrica[i] for i in K1+K3 for t in range(1, len(T)) # se incluye la restriccion de capacidad de fabricacion
         ),name="R8" )
     r9 = modelo.addConstrs(
         (y[i,t] <= z2[i,t]*42000 for i in K2+K3 for t in range(1, len(T))
@@ -311,9 +311,6 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     r11 = modelo.addConstrs (
         (It[i, t] <= Q_invent[i] for i in NN for t in range(1, len(T))), name="R11" )
 
-    # Restricciones de capacidad de fabrica
-    r12 = modelo.addConstrs (
-        (x[i, t] <= Q_fabrica[i] for i in K1+K3 for t in range(1, len(T))), name="R12" )
 
     modelo.update()
     
