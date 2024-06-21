@@ -4,7 +4,7 @@ import pandas as pd
 import datetime as dt
 from BOM_graph.StudyBOM import GenerateGraph
 
-def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, Param_MOQ = True, leadtime_purchase = True, leadtime_routes = False):
+def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv):
     """ Carga los conjuntos y parametros del sistema en funcion de los datos de entrada y la configuracion introducida
 
     Args:
@@ -65,21 +65,19 @@ def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, 
     T = date_range.tolist() # De hoy a 12 meses
 
     # Demanda y precios de venta
-    # LEVEL0 = layers[0]+[39]
-    # Map MyBOMITEMID and CUSTOMERID to indices
-    item_indices = {item: idx for idx, item in enumerate(LEVEL0)} # El 39 es un ítem a nivel 0 y Layer 1
-    customer_indices = {customer: idx for idx, customer in enumerate(R)}
+    item_indices = {item: idx for idx, item in enumerate(LEVEL0)} # Se mapean los items con los indices de la matriz
+    customer_indices = {customer: idx for idx, customer in enumerate(R)} # Se mapean los customers con los indices de la matriz
     D = []
     B = []
     for period_start in T:
-        period_end = period_start + pd.DateOffset(months=1) - pd.DateOffset(days=1)  # End of the month
+        period_end = period_start + pd.DateOffset(months=1) - pd.DateOffset(days=1)  # fin del mes
         period_df = Orders[(Orders['END_DATE'] >= period_start) & (Orders['END_DATE'] <= period_end)]
         
-        # Create matrices for quantities and prices
+        # Matrices de demanda y precios de venta en el periodo t
         period_matrixD = np.zeros((len(LEVEL0), R_len))
         period_matrixB = np.zeros((len(LEVEL0), R_len))
         
-        # Fill the matrices
+        # se rellenan las matrices
         for _, row in period_df.iterrows():
             item_idx = item_indices[row['MyBOMITEMID']]
             customer_idx = customer_indices[row['CUSTOMERID']]
@@ -90,54 +88,67 @@ def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, 
         D.append(period_matrixD)
         B.append(period_matrixB)
     
+
     # Costes de activacion
-    if Param_MOQ:
-        c_act = {**dict.fromkeys(RouteItems["MyBOMITEMID"], 0), 
-        **dict.fromkeys(MixedItems["MyBOMITEMID"], 0)}
-    else:    
-        c_act = {**dict(zip(RouteItems["MyBOMITEMID"], RouteItems["SETUP_COST"])), 
-        **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["SETUP_COST"]))}
-        
+    c_act = {
+        **{key: float(value) for key, value in zip(RouteItems["MyBOMITEMID"], RouteItems["SETUP_COST"])},
+        **{key: float(value) for key, value in zip(MixedItems["MyBOMITEMID"], MixedItems["SETUP_COST"])}
+    }
+
     # Costes por unidad
-    c1 = {**dict(zip(RouteItems["MyBOMITEMID"], RouteItems["RUNTIME_COST"])), 
-    **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["RUNTIME_COST"]))}
-    c2 = {**dict(zip(PurchaseItems["MyBOMITEMID"], PurchaseItems["UNITPRICE_Compra"])), 
-    **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["UNITPRICE_Compra"]))}
-    
+    c1 = {
+        **{key: float(value) for key, value in zip(RouteItems["MyBOMITEMID"], RouteItems["RUNTIME_COST"])},
+        **{key: float(value) for key, value in zip(MixedItems["MyBOMITEMID"], MixedItems["RUNTIME_COST"])}
+    }
+
+    c2 = {
+        **{key: float(value) for key, value in zip(PurchaseItems["MyBOMITEMID"], PurchaseItems["UNITPRICE_Compra"])},
+        **{key: float(value) for key, value in zip(MixedItems["MyBOMITEMID"], MixedItems["UNITPRICE_Compra"])}
+    }
+
     # Costes de inventario
-    c_invent = {**dict(zip(Stock["MyBOMITEMID"], Stock["Invent_Cost"]))}
+    c_invent = {
+        **{key: float(value) for key, value in zip(Stock["MyBOMITEMID"], Stock["Invent_Cost"])}
+    }
     
     # Capacidad de inventario
-    Q_invent = {**dict(zip(Stock["MyBOMITEMID"], Stock["CAPACITY"]))}
-    
+    Q_invent = {
+        **{key: int(value) for key, value in zip(Stock["MyBOMITEMID"], Stock["CAPACITY"])}
+    }
+
     # Capacidad de fabricacion
-    Q_fabrica = {**dict(zip(RouteItems["MyBOMITEMID"], RouteItems["CAPACITY"])), 
-    **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["CAPACITY"]))}
-    
+    Q_fabrica = {
+        **{key: int(value) for key, value in zip(RouteItems["MyBOMITEMID"], RouteItems["CAPACITY"])},
+        **{key: int(value) for key, value in zip(MixedItems["MyBOMITEMID"], MixedItems["CAPACITY"])}
+    }
+
     # MOQs
-    MOQ1 = {**dict(zip(RouteItems["MyBOMITEMID"], RouteItems["MOQ_Fabricacion"])), 
-    **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["MOQ_Fabricacion"]))}
-    MOQ2 = {**dict(zip(PurchaseItems["MyBOMITEMID"], PurchaseItems["MOQ_Compra"])), 
-    **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["MOQ_Compra"]))}
+    MOQ1 = {
+        **{key: int(value) for key, value in zip(RouteItems["MyBOMITEMID"], RouteItems["MOQ_Fabricacion"])},
+        **{key: int(value) for key, value in zip(MixedItems["MyBOMITEMID"], MixedItems["MOQ_Fabricacion"])}
+    }
+
+    MOQ2 = {
+        **{key: int(value) for key, value in zip(PurchaseItems["MyBOMITEMID"], PurchaseItems["MOQ_Compra"])},
+        **{key: int(value) for key, value in zip(MixedItems["MyBOMITEMID"], MixedItems["MOQ_Compra"])}
+    }
 
     # Lead times Compra
-    if leadtime_purchase:
-        lt = {**dict(zip(PurchaseItems["MyBOMITEMID"], PurchaseItems["LEADTIME"])), 
-        **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["LEADTIME"]))}
-    else:
-        lt = {**dict.fromkeys(PurchaseItems["MyBOMITEMID"], 0), 
-        **dict.fromkeys(MixedItems["MyBOMITEMID"], 0)}
+    lt = {
+        **{key: int(value) for key, value in zip(PurchaseItems["MyBOMITEMID"], PurchaseItems["LEADTIME"])},
+        **{key: int(value) for key, value in zip(MixedItems["MyBOMITEMID"], MixedItems["LEADTIME"])}
+    }
 
     # Lead Times Fabricacion
-    if leadtime_routes:
-        ltf = {**dict(zip(RouteItems["MyBOMITEMID"], RouteItems["LEADTIME"])), 
-        **dict(zip(MixedItems["MyBOMITEMID"], MixedItems["LEADTIME_ROUTES"]))}
-    else:
-        ltf = {**dict.fromkeys(RouteItems["MyBOMITEMID"], 0), 
-        **dict.fromkeys(MixedItems["MyBOMITEMID"], 0)}
+    ltf = {
+        **{key: int(value) for key, value in zip(RouteItems["MyBOMITEMID"], RouteItems["LEADTIME"])},
+        **{key: int(value) for key, value in zip(MixedItems["MyBOMITEMID"], MixedItems["LEADTIME_ROUTES"])}
+    }
 
     # Stock
-    I_0 = dict(zip(Stock["MyBOMITEMID"], Stock["STOCK"]))
+    I_0 = {key: int(value) for key, value in zip(Stock["MyBOMITEMID"], Stock["STOCK"])}
+
+
 
 
     # Matriz alpha

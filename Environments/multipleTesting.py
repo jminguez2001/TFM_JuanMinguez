@@ -12,7 +12,9 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
          leadtime_purchase = True, leadtime_routes = False,
          Param_I_0 = True, Costes_invent = False, Invent_Capacity = False
          , Fabrica_Capacity = False 
-         , c_act_Multiplier = 1, lt_Multiplier = 1, ltf_Multiplier = 1):
+         , c_act_Multiplier = 1, lt_Multiplier = 1, ltf_Multiplier = 1, MOQ1_multipliter = 1
+         , c1_fc2 = False, c1_fc2_multiplier = 1
+         , minimum_delivery_rate = 0):
     """Simula el modelo para la configuracion introducida
 
     Args:
@@ -37,21 +39,39 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     # Definición de los parámetros del problema
     BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv = chargeEnv(mode = mode)
 
-    
-    if not Available_Stock:
-        Stock["STOCK"] = 0
 
-    NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, c_invent, Q_invent, Q_fabrica, MOQ1, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv, Param_MOQ, leadtime_purchase, leadtime_routes)
+    NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, c_invent, Q_invent, Q_fabrica, MOQ1, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv)
+    
+
+    # Se modifican los valores segun la configuracion introducida
+    if not Available_Stock:
+        I_0.update({key: 0 for key in Stock["MyBOMITEMID"]})
+    
+    if Param_MOQ:
+        c_act.update({key: 0 for key in RouteItems["MyBOMITEMID"]})
+        c_act.update({key: 0 for key in MixedItems["MyBOMITEMID"]})
+    
+    # Lead times Compra
+    if not leadtime_purchase:
+        lt.update({key: 0 for key in PurchaseItems["MyBOMITEMID"]})
+        lt.update({key: 0 for key in MixedItems["MyBOMITEMID"]})
+
+    # Lead Times Fabricacion
+    if not leadtime_routes:
+        ltf.update({key: 0 for key in RouteItems["MyBOMITEMID"]})
+        ltf.update({key: 0 for key in MixedItems["MyBOMITEMID"]})
     
     if not Costes_invent:
         for i in NN:
             c_invent[i] = 0
+    
     if not Invent_Capacity:
         for i in NN:
-            Q_invent[i] = 50000
+            Q_invent[i] = 2000000
+    
     if not Fabrica_Capacity:
         for i in K1+K3:
-            Q_fabrica[i] = 50000
+            Q_fabrica[i] = 2000000
     
     # Multiplicador de los costes de activacion:
     c_act = {key: value*c_act_Multiplier for key, value in c_act.items()}
@@ -59,6 +79,14 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     # Multiplicador LeadTimes
     lt = {key: int(value*lt_Multiplier) for key, value in lt.items()} # Me aseguro de que la solucion es entera, ejemplo int(3*0.5) = 1
     ltf = {key: int(value*ltf_Multiplier) for key, value in ltf.items()}
+    
+    # Multiplicador de las MOQ1
+    MOQ1  = {key: int(value * MOQ1_multipliter) if value != 1 else value for key, value in MOQ1.items()}
+    
+    # c1(c2)
+    if c1_fc2:
+        c1.update({key: float(c2[key]) * c1_fc2_multiplier for key in MixedItems["MyBOMITEMID"]})
+        c1.update({key: float(c1[key]) for key in RouteItems["MyBOMITEMID"]})
     
     # Inicialización del modelo
     modelo = Model("Ejercicio", env = env)    
@@ -288,56 +316,76 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
 
     # Restricciones de MOQs
 
-    r6 = modelo.addConstrs(
-        (x[i,t] + 42000*(1-z1[i,t])>=MOQ1[i] for i in K1+K3 for t in range(1, len(T))
-        ),name="R6" )
+    if Param_MOQ:
+        r6 = modelo.addConstrs(
+            (x[i,t]>=MOQ1[i]*z1[i,t] for i in K1+K3 for t in range(1, len(T))
+                ),name="R6" )
+    else:
+        r6 = modelo.addConstrs(
+            (x[i,t] + 1000000*(1-z1[i,t])>=MOQ1[i] for i in K1+K3 for t in range(1, len(T))
+                ),name="R6" )
+
     r7 = modelo.addConstrs(
-        (y[i,t] + 42000*(1-z2[i,t])>= MOQ2[i] for i in K2+K3 for t in range(1, len(T))
-        ),name="R7" )
+        (y[i,t] >= MOQ2[i]*z2[i,t] for i in K2+K3 for t in range(1, len(T))
+            ),name="R7" )
 
     # Restricciones de activacion de variables binarias
-    r8 = modelo.addConstrs(
-        (x[i,t] <= z1[i,t]*Q_fabrica[i] for i in K1+K3 for t in range(1, len(T)) # se incluye la restriccion de capacidad de fabricacion
-        ),name="R8" )
+    if Fabrica_Capacity:
+        r8 = modelo.addConstrs(
+            (x[i,t] <= z1[i,t]*Q_fabrica[i] for i in K1+K3 for t in range(1, len(T)) # se incluye la restriccion de capacidad de fabricacion
+            ),name="R8" )
+    else:
+        r8 = modelo.addConstrs(
+            (x[i,t] <= z1[i,t]*420000 for i in K1+K3 for t in range(1, len(T)) # se incluye la restriccion de capacidad de fabricacion
+            ),name="R8" )
     r9 = modelo.addConstrs(
-        (y[i,t] <= z2[i,t]*42000 for i in K2+K3 for t in range(1, len(T))
+        (y[i,t] <= z2[i,t]*420000 for i in K2+K3 for t in range(1, len(T))
         ),name="R9" )
     
     # Restricciones de capacidad de Inventario
-    if not Param_I_0:
-        r10 = modelo.addConstrs (
-            (I_0[i] <= Q_invent[i] for i in NN), name="R10" )
+    if Invent_Capacity:
+        if not Param_I_0:
+            r10 = modelo.addConstrs (
+                (I_0[i] <= Q_invent[i] for i in NN), name="R10" )
 
-    r11 = modelo.addConstrs (
-        (It[i, t] <= Q_invent[i] for i in NN for t in range(1, len(T))), name="R11" )
+        r11 = modelo.addConstrs (
+            (It[i, t] <= Q_invent[i] for i in NN for t in range(1, len(T))), name="R11" ) 
 
+    # r12 = modelo.addConstr(quicksum(D[t][item_indices[i],customer_indices[r]]*w[i, r, t] for t in range(1, len(T)) for i in LEVEL0 for r in R if D[t][item_indices[i],customer_indices[r]]!= 0)
+    #                        >= minimum_delivery_rate * 
+    #                        quicksum(D[t][item_indices[i],customer_indices[r]] for t in range(1, len(T)) for i in LEVEL0 for r in R if D[t][item_indices[i],customer_indices[r]] != 0)
+    #                        , name="r12")
+    
+    # entregados = quicksum(w[i, r, t] for t in range(1, len(T)) for i in LEVEL0 for r in R if D[t][item_indices[i],customer_indices[r]] != 0)
+    # pedidos = quicksum(1 for t in range(1, len(T)) for i in LEVEL0 for r in R if D[t][item_indices[i],customer_indices[r]] != 0)                       
+    # r12 = modelo.addConstr( entregados >= minimum_delivery_rate * pedidos
+    #                        , name="r12")
 
     modelo.update()
     
     # Definición de la función objetivo
     modelo.setObjective(quicksum(quicksum(D[t][item_indices[i],customer_indices[r]]*B[t][item_indices[i],customer_indices[r]]*w[i,r,t] for r in R for i in LEVEL0) 
-                                - quicksum(c1[i]*x[i,t] for i in K1+K3)
-                                - quicksum(c2[i]*y[i,t] for i in K2+K3)
-                                - quicksum(c_act[i]*z1[i,t] for i in K1+K3)
-                                - quicksum(c_invent[i]*It[i,t] for i in NN)
+                                - quicksum(float(c1[i])*x[i,t] for i in K1+K3)
+                                - quicksum(float(c2[i])*y[i,t] for i in K2+K3)
+                                - quicksum(float(c_act[i])*z1[i,t] for i in K1+K3)
+                                - quicksum(float(c_invent[i])*It[i,t] for i in NN)
                                 for t in range(1, len(T))), sense = GRB.MAXIMIZE)
     
     # Optimizacion
     modelo.optimize()
     
-    NoSatisfecha = 0
-    totalPedidos = 0
-    udsNoSatisfecha = 0
-    totalUds = 0
+    NoSatisfecha = totalPedidos = udsNoSatisfecha = totalUds = 0
+
     for t in range(1, len(T)):
         for i in LEVEL0:
             for r in R:
-                if D[t][item_indices[i],customer_indices[r]] != 0:
+                demand = D[t][item_indices[i], customer_indices[r]]
+                if demand != 0:
+                    totalPedidos += 1
+                    totalUds += demand
                     if w[i, r, t].X == 0:
                         NoSatisfecha += 1
-                        udsNoSatisfecha += D[t][item_indices[i],customer_indices[r]]
-                    totalPedidos += 1
-                    totalUds += D[t][item_indices[i],customer_indices[r]]
+                        udsNoSatisfecha += demand
     
     # Se guardan las soluciones
     solI = {(i, t): None for i in NN for t in range(0, len(T))}
@@ -351,8 +399,40 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     solW.update({(i,r,t): w[i,r,t].X for i in set(LEVEL0) for r in R for t in range(1, len(T))})
     
     
+    # Si quiero ver resultados
+    # with open('output.txt', 'w') as file:
+    #     for t in range(1, len(T)):
+    #         for i in LEVEL0:
+    #             for r in R:
+    #                 if w[i, r, t].X != 0 and D[t][item_indices[i]][customer_indices[r]] != 0:
+    #                     file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
+    #                     file.write(f"Demanda {D[t][item_indices[i]][customer_indices[r]]}\n")
+    #                     if t == 1:
+    #                         file.write(f"Stock antes: {I_0[i]}\n")
+    #                     else:
+    #                         file.write(f"Stock antes: {It[i, t-1].X}\n")
+    #                     file.write(f"Stock despues: {It[i, t].X}\n")
+    #                     if i in K1 + K3:
+    #                         file.write(f"Cantidad Producida {x[i, t].X}\n")
+    #                     if i in K2 + K3:
+    #                         file.write(f"Cantidad Comprada {y[i, t].X}\n")
+    #                         if lt[i] < t:
+    #                             file.write(f"Cantidad comprada previamente que llega ahora {y[i, t-lt[i]].X}\n")
+    #                         if i in K2:
+    #                             lead_time = PurchaseItems.loc[PurchaseItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
+    #                         if i in K3:
+    #                             lead_time = MixedItems.loc[MixedItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
+    #                         file.write(f"Lead time {lead_time}\n")
+    #                 else:
+    #                     if D[t-1][item_indices[i]][customer_indices[r]] != 0:
+    #                         file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
+    #                         file.write(f"NO SE SATISFACE\n")
+    #         file.write("------------------------------------------\n")
+    
+    
+    
     sol = modelo.getAttr("ObjVal")
     modelo.close()
     env.close()
 
-    return udsNoSatisfecha/totalUds*100, NoSatisfecha/totalPedidos*100, sol, solI, solX, solY, solW, D, item_indices, customer_indices, K1, K2, K3, T
+    return udsNoSatisfecha/totalUds*100, NoSatisfecha/totalPedidos*100, sol, solI, solX, solY, solW, D, B, item_indices, customer_indices, K1, K2, K3, T

@@ -17,6 +17,15 @@ def chargeEnv(mode = "default"):
             Stock = pd.read_pickle('./DataFiles/Stock.pkl')
             Stock = Stock[Stock['MyBOMITEMID'] != 44].reset_index(drop=True)
             Tenv = 13
+            
+            # Inventamos los valores que no se nos dan, ya luego se verá que se hace
+            RouteItems["LEADTIME"] = 0 
+            MixedItems["LEADTIME_ROUTES"] = 0
+            Stock["Invent_Cost"] = 0
+            Stock["CAPACITY"] = 1000
+            RouteItems["CAPACITY"] = 2000000
+            MixedItems["CAPACITY"] = 1000000
+            
             return (BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv)
         case "TOY":
             BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock = chargeToy()
