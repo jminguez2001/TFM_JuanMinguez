@@ -14,7 +14,8 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
          , Fabrica_Capacity = False 
          , c_act_Multiplier = 1, lt_Multiplier = 1, ltf_Multiplier = 1, MOQ1_multipliter = 1
          , c1_fc2 = False, c1_fc2_multiplier = 1
-         , minimum_delivery_rate = 0):
+         , minimum_delivery_rate = 0,
+         index = 0):
     """Simula el modelo para la configuracion introducida
 
     Args:
@@ -356,10 +357,10 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     #                        quicksum(D[t][item_indices[i],customer_indices[r]] for t in range(1, len(T)) for i in LEVEL0 for r in R if D[t][item_indices[i],customer_indices[r]] != 0)
     #                        , name="r12")
     
-    # entregados = quicksum(w[i, r, t] for t in range(1, len(T)) for i in LEVEL0 for r in R if D[t][item_indices[i],customer_indices[r]] != 0)
-    # pedidos = quicksum(1 for t in range(1, len(T)) for i in LEVEL0 for r in R if D[t][item_indices[i],customer_indices[r]] != 0)                       
-    # r12 = modelo.addConstr( entregados >= minimum_delivery_rate * pedidos
-    #                        , name="r12")
+    entregados = quicksum(w[i, r, t] for t in range(1, len(T)) for i in LEVEL0 for r in R if D[t][item_indices[i],customer_indices[r]] != 0)
+    pedidos = quicksum(1 for t in range(1, len(T)) for i in LEVEL0 for r in R if D[t][item_indices[i],customer_indices[r]] != 0)                       
+    r12 = modelo.addConstr( entregados >= minimum_delivery_rate * pedidos
+                           , name="r12")
 
     modelo.update()
     
@@ -400,34 +401,36 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     
     
     # Si quiero ver resultados
-    # with open('output.txt', 'w') as file:
-    #     for t in range(1, len(T)):
-    #         for i in LEVEL0:
-    #             for r in R:
-    #                 if w[i, r, t].X != 0 and D[t][item_indices[i]][customer_indices[r]] != 0:
-    #                     file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
-    #                     file.write(f"Demanda {D[t][item_indices[i]][customer_indices[r]]}\n")
-    #                     if t == 1:
-    #                         file.write(f"Stock antes: {I_0[i]}\n")
-    #                     else:
-    #                         file.write(f"Stock antes: {It[i, t-1].X}\n")
-    #                     file.write(f"Stock despues: {It[i, t].X}\n")
-    #                     if i in K1 + K3:
-    #                         file.write(f"Cantidad Producida {x[i, t].X}\n")
-    #                     if i in K2 + K3:
-    #                         file.write(f"Cantidad Comprada {y[i, t].X}\n")
-    #                         if lt[i] < t:
-    #                             file.write(f"Cantidad comprada previamente que llega ahora {y[i, t-lt[i]].X}\n")
-    #                         if i in K2:
-    #                             lead_time = PurchaseItems.loc[PurchaseItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
-    #                         if i in K3:
-    #                             lead_time = MixedItems.loc[MixedItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
-    #                         file.write(f"Lead time {lead_time}\n")
-    #                 else:
-    #                     if D[t-1][item_indices[i]][customer_indices[r]] != 0:
-    #                         file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
-    #                         file.write(f"NO SE SATISFACE\n")
-    #         file.write("------------------------------------------\n")
+    with open(f'./Resultados/Outputs/output_{index}.txt', 'w') as file:
+        for t in range(1, len(T)):
+            for i in LEVEL0:
+                for r in R:
+                    if w[i, r, t].X != 0 and D[t][item_indices[i]][customer_indices[r]] != 0:
+                        file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
+                        file.write(f"Demanda {D[t][item_indices[i]][customer_indices[r]]}\n")
+                        if t == 1:
+                            file.write(f"Stock antes: {I_0[i]}\n")
+                        else:
+                            file.write(f"Stock antes: {It[i, t-1].X}\n")
+                        file.write(f"Stock despues: {It[i, t].X}\n")
+                        if i in K1 + K3:
+                            file.write(f"Cantidad Producida {x[i, t].X}\n")
+                        if i in K2 + K3:
+                            file.write(f"Cantidad Comprada {y[i, t].X}\n")
+                            if lt[i] < t:
+                                file.write(f"Cantidad comprada previamente que llega ahora {y[i, t-lt[i]].X}\n")
+                            if i in K2:
+                                lead_time = PurchaseItems.loc[PurchaseItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
+                            if i in K3:
+                                lead_time = MixedItems.loc[MixedItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
+                            file.write(f"Lead time {lead_time}\n")
+                        file.write("------------------------------------------\n")
+                    else:
+                        if D[t-1][item_indices[i]][customer_indices[r]] != 0:
+                            file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
+                            file.write(f"NO SE SATISFACE\n")
+                            file.write("------------------------------------------\n")
+            file.write("----------------------------------------------------------------\n")
     
     
     
@@ -435,4 +438,4 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     modelo.close()
     env.close()
 
-    return udsNoSatisfecha/totalUds*100, NoSatisfecha/totalPedidos*100, sol, solI, solX, solY, solW, D, B, item_indices, customer_indices, K1, K2, K3, T
+    return udsNoSatisfecha/totalUds*100, NoSatisfecha/totalPedidos*100, sol, solI, solX, solY, solW
