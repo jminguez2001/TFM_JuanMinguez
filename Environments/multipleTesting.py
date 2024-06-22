@@ -64,18 +64,18 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     
     if not Costes_invent:
         for i in NN:
-            c_invent[i] = 0
+            c_invent[i] = float(0)
     
     if not Invent_Capacity:
         for i in NN:
-            Q_invent[i] = 2000000
+            Q_invent[i] = int(2000000)
     
     if not Fabrica_Capacity:
         for i in K1+K3:
-            Q_fabrica[i] = 2000000
+            Q_fabrica[i] = int(2000000)
     
     # Multiplicador de los costes de activacion:
-    c_act = {key: value*c_act_Multiplier for key, value in c_act.items()}
+    c_act = {key: float(value*c_act_Multiplier) for key, value in c_act.items()}
     
     # Multiplicador LeadTimes
     lt = {key: int(value*lt_Multiplier) for key, value in lt.items()} # Me aseguro de que la solucion es entera, ejemplo int(3*0.5) = 1
@@ -86,7 +86,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     
     # c1(c2)
     if c1_fc2:
-        c1.update({key: float(c2[key]) * c1_fc2_multiplier for key in MixedItems["MyBOMITEMID"]})
+        c1.update({key: float(c2[key] * c1_fc2_multiplier) for key in MixedItems["MyBOMITEMID"]})
         c1.update({key: float(c1[key]) for key in RouteItems["MyBOMITEMID"]})
     
     # Inicialización del modelo
@@ -401,36 +401,36 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     
     
     # Si quiero ver resultados
-    with open(f'./Resultados/Outputs/output_{index}.txt', 'w') as file:
-        for t in range(1, len(T)):
-            for i in LEVEL0:
-                for r in R:
-                    if w[i, r, t].X != 0 and D[t][item_indices[i]][customer_indices[r]] != 0:
-                        file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
-                        file.write(f"Demanda {D[t][item_indices[i]][customer_indices[r]]}\n")
-                        if t == 1:
-                            file.write(f"Stock antes: {I_0[i]}\n")
-                        else:
-                            file.write(f"Stock antes: {It[i, t-1].X}\n")
-                        file.write(f"Stock despues: {It[i, t].X}\n")
-                        if i in K1 + K3:
-                            file.write(f"Cantidad Producida {x[i, t].X}\n")
-                        if i in K2 + K3:
-                            file.write(f"Cantidad Comprada {y[i, t].X}\n")
-                            if lt[i] < t:
-                                file.write(f"Cantidad comprada previamente que llega ahora {y[i, t-lt[i]].X}\n")
-                            if i in K2:
-                                lead_time = PurchaseItems.loc[PurchaseItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
-                            if i in K3:
-                                lead_time = MixedItems.loc[MixedItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
-                            file.write(f"Lead time {lead_time}\n")
-                        file.write("------------------------------------------\n")
-                    else:
-                        if D[t-1][item_indices[i]][customer_indices[r]] != 0:
-                            file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
-                            file.write(f"NO SE SATISFACE\n")
-                            file.write("------------------------------------------\n")
-            file.write("----------------------------------------------------------------\n")
+    # with open(f'./Resultados/Outputs/output_{index}.txt', 'w') as file:
+    #     for t in range(1, len(T)):
+    #         for i in LEVEL0:
+    #             for r in R:
+    #                 if w[i, r, t].X != 0 and D[t][item_indices[i]][customer_indices[r]] != 0:
+    #                     file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
+    #                     file.write(f"Demanda {D[t][item_indices[i]][customer_indices[r]]}\n")
+    #                     if t == 1:
+    #                         file.write(f"Stock antes: {I_0[i]}\n")
+    #                     else:
+    #                         file.write(f"Stock antes: {It[i, t-1].X}\n")
+    #                     file.write(f"Stock despues: {It[i, t].X}\n")
+    #                     if i in K1 + K3:
+    #                         file.write(f"Cantidad Producida {x[i, t].X}\n")
+    #                     if i in K2 + K3:
+    #                         file.write(f"Cantidad Comprada {y[i, t].X}\n")
+    #                         if lt[i] < t:
+    #                             file.write(f"Cantidad comprada previamente que llega ahora {y[i, t-lt[i]].X}\n")
+    #                         if i in K2:
+    #                             lead_time = PurchaseItems.loc[PurchaseItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
+    #                         if i in K3:
+    #                             lead_time = MixedItems.loc[MixedItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
+    #                         file.write(f"Lead time {lead_time}\n")
+    #                     file.write("------------------------------------------\n")
+    #                 else:
+    #                     if D[t-1][item_indices[i]][customer_indices[r]] != 0:
+    #                         file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
+    #                         file.write(f"NO SE SATISFACE\n")
+    #                         file.write("------------------------------------------\n")
+    #         file.write("----------------------------------------------------------------\n")
     
     
     

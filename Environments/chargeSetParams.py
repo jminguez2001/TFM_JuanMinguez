@@ -81,8 +81,8 @@ def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, 
         for _, row in period_df.iterrows():
             item_idx = item_indices[row['MyBOMITEMID']]
             customer_idx = customer_indices[row['CUSTOMERID']]
-            period_matrixD[item_idx, customer_idx] = row['QUANTITY']
-            period_matrixB[item_idx, customer_idx] = row['UNITPRICE_EUR']
+            period_matrixD[item_idx, customer_idx] = int(row['QUANTITY'])
+            period_matrixB[item_idx, customer_idx] = float(row['UNITPRICE_EUR'])
         
         # Append the period matrices to the lists
         D.append(period_matrixD)
@@ -160,7 +160,7 @@ def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, 
         for j in N[i]:
             maxibo_qty = BOM[(BOM['MyPARENTBOMITEMID'] == i) & (BOM['MyBOMITEMID'] == j)]['MAXIBOQTY']
             if not maxibo_qty.empty:
-                alpha[i][j] = maxibo_qty.values[0]
+                alpha[i][j] = int(maxibo_qty.values[0])
             else:
                 alpha[i][j] = 0
 
