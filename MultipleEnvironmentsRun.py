@@ -22,7 +22,7 @@ if __name__ == '__main__':
     Costes_invent = [False] # Si se consideran costes de inventario
     Invent_Capacity = [False] # Si se consideran capacidades de inventario
     Fabrica_Capacity = [False] # Si se consideran capacidades de fabrica
-    minimum_delivery_rate = [0] # Ratio de pedidos satisfechos
+    minimum_delivery_rate = [0, 0.8] # Ratio de pedidos satisfechos
 
     # Inicializamos el df y las listas de los resultados
     results = pd.DataFrame(columns=['Environment', 'Available_Stock', 'Param_MOQ', 'leadtime_purchase', 'leadtime_routes',
