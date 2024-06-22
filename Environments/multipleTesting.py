@@ -118,7 +118,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     
     # Restricciones
     # Inventario para el primer periodo, para items a nivel 0
-    for i in set(K1).intersection(set(LEVEL0)):
+    for i in set(K1).intersection((set(LEVEL0).intersection(set(layers[0])))):
         if ltf[i] < 1:
             modelo.addConstr(
                 It[i,1] == I_0[i] + x[i, 1-ltf[i]] - quicksum(D[1][item_indices[i],customer_indices[r]]*w[i,r,1] for r in R),
@@ -129,7 +129,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
                 It[i, 1] == I_0[i] - quicksum(D[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R),
                 name=f"R10b_{i}"
             )
-    for i in set(K2).intersection(set(LEVEL0)):
+    for i in set(K2).intersection((set(LEVEL0).intersection(set(layers[0])))):
         if lt[i] < 1:
             modelo.addConstr(
                 It[i, 1] == I_0[i] + y[i, 1-lt[i]] - quicksum(D[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R),
@@ -140,7 +140,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
                 It[i, 1] == I_0[i] - quicksum(D[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R),
                 name=f"R30_{i}"
             )   
-    for i in set(K3).intersection(set(LEVEL0)):
+    for i in set(K3).intersection((set(LEVEL0).intersection(set(layers[0])))):
         if lt[i] < 1:
             if ltf[i]<1:
                 modelo.addConstr(
@@ -167,7 +167,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
         
 
     # Inventario para el primer periodo, para items a otro nivel
-    for i in set(K1).intersection(set().union(*layers[1:])):
+    for i in set(K1).intersection(((set(NN) - set(LEVEL0)).intersection(set().union(*layers[1:])))):
         if ltf[i] < 1:
             modelo.addConstr(
                 It[i, 1] == I_0[i] + x[i, 1-ltf[i]] - quicksum(alpha[j][i] * x[j, 1] for j in N_reverse[i]),
@@ -178,7 +178,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
                 It[i, 1] == I_0[i] - quicksum(alpha[j][i] * x[j, 1] for j in N_reverse[i]),
                 name=f"R1b_{i}"
             )
-    for i in set(K2).intersection(set().union(*layers[1:])):
+    for i in set(K2).intersection(((set(NN) - set(LEVEL0)).intersection(set().union(*layers[1:])))):
         if lt[i] < 1:
             modelo.addConstr(
                 It[i, 1] == I_0[i] + y[i, 1-lt[i]] - quicksum(alpha[j][i] * x[j, 1] for j in N_reverse[i]),
@@ -189,7 +189,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
                 It[i, 1] == I_0[i] - quicksum(alpha[j][i] * x[j, 1] for j in N_reverse[i]),
                 name=f"R3a_{i}"
             )
-    for i in set(K3).intersection(set().union(*layers[1:])):
+    for i in set(K3).intersection(((set(NN) - set(LEVEL0)).intersection(set().union(*layers[1:])))):
         if lt[i] < 1:
             if ltf[i] < 1:
                 modelo.addConstr(
@@ -215,7 +215,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
         
 
     # Inventario para el resto de periodos, para items a nivel 0
-    for i in set(K1).intersection(set(LEVEL0)):
+    for i in set(K1).intersection((set(LEVEL0).intersection(set(layers[0])))):
         for t in range(2, len(T)):
             if ltf[i] < t:
                 modelo.addConstr(
@@ -227,7 +227,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
                     It[i, t] == It[i, t-1] - quicksum(D[t][item_indices[i], customer_indices[r]] * w[i, r, t] for r in R),
                     name=f"R10tb_{i}_{t}"
                 )
-    for i in set(K2).intersection(set(LEVEL0)):
+    for i in set(K2).intersection((set(LEVEL0).intersection(set(layers[0])))):
         for t in range(2, len(T)):
             if lt[i] < t:
                 modelo.addConstr(
@@ -239,7 +239,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
                     It[i, t] == It[i, t-1] - quicksum(D[t][item_indices[i], customer_indices[r]] * w[i, r, t] for r in R),
                     name=f"R30t_{i}_{t}"
                 )
-    for i in set(K3).intersection(set(LEVEL0)):
+    for i in set(K3).intersection((set(LEVEL0).intersection(set(layers[0])))):
         for t in range(2, len(T)):
             if lt[i] < t:
                 if ltf[i] < t:
@@ -265,7 +265,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
                     )
 
     # Inventario para el resto de periodos, para items a otro nivel
-    for i in set(K1).intersection(set().union(*layers[1:])):
+    for i in set(K1).intersection(((set(NN) - set(LEVEL0)).intersection(set().union(*layers[1:])))):
         for t in range(2, len(T)):
             if ltf[i] < t:
                 modelo.addConstr(
@@ -277,7 +277,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
                     It[i, t] == It[i, t-1] - quicksum(alpha[j][i] * x[j, t] for j in N_reverse[i]),
                     name=f"R1atb_{i}_{t}"
                 )
-    for i in set(K2).intersection(set().union(*layers[1:])):
+    for i in set(K2).intersection(((set(NN) - set(LEVEL0)).intersection(set().union(*layers[1:])))):
         for t in range(2, len(T)):
             if lt[i] < t:
                 modelo.addConstr(
@@ -289,7 +289,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
                     It[i, t] == It[i, t-1] - quicksum(alpha[j][i] * x[j, t] for j in N_reverse[i]),
                     name=f"R3at_{i}_{t}"
                 )
-    for i in set(K3).intersection(set().union(*layers[1:])):
+    for i in set(K3).intersection(((set(NN) - set(LEVEL0)).intersection(set().union(*layers[1:])))):
         for t in range(2, len(T)):
             if lt[i] < t:
                 if ltf[i] < t:
@@ -313,6 +313,110 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
                         It[i, t] == It[i, t-1] - quicksum(alpha[j][i] * x[j, t] for j in N_reverse[i]),
                         name=f"R5at2_{i}_{t}"
                     )
+
+    # Items finales que estan en una capa distinta de la L1
+    for i in set(K1).intersection((set(LEVEL0).intersection(set().union(*layers[1:])))):
+        for t in range(2, len(T)):
+            if ltf[i] < t:
+                modelo.addConstr(
+                    It[i, t] == It[i, t-1] + x[i, t-ltf[i]] - quicksum(alpha[j][i] * x[j, t] for j in N_reverse[i]) - quicksum(D[t][item_indices[i], customer_indices[r]] * w[i, r, t] for r in R),
+                    name=f"R1atb_{i}_{t}"
+                )
+            else:
+                modelo.addConstr(
+                    It[i, t] == It[i, t-1] - quicksum(alpha[j][i] * x[j, t] for j in N_reverse[i]) - quicksum(D[t][item_indices[i], customer_indices[r]] * w[i, r, t] for r in R),
+                    name=f"R1atb_{i}_{t}"
+                )
+    for i in set(K2).intersection((set(LEVEL0).intersection(set().union(*layers[1:])))):
+        for t in range(2, len(T)):
+            if lt[i] < t:
+                modelo.addConstr(
+                    It[i, t] == It[i, t-1] + y[i, t-lt[i]] - quicksum(alpha[j][i] * x[j, t] for j in N_reverse[i]) - quicksum(D[t][item_indices[i], customer_indices[r]] * w[i, r, t] for r in R),
+                    name=f"R2at_{i}_{t}"
+                )
+            else:
+                modelo.addConstr(
+                    It[i, t] == It[i, t-1] - quicksum(alpha[j][i] * x[j, t] for j in N_reverse[i])- quicksum(D[t][item_indices[i], customer_indices[r]] * w[i, r, t] for r in R),
+                    name=f"R3at_{i}_{t}"
+                )
+    for i in set(K3).intersection((set(LEVEL0).intersection(set().union(*layers[1:])))):
+        for t in range(2, len(T)):
+            if lt[i] < t:
+                if ltf[i] < t:
+                    modelo.addConstr(
+                        It[i, t] == It[i, t-1] + x[i, t-ltf[i]] + y[i, t-lt[i]] - quicksum(alpha[j][i] * x[j, t] for j in N_reverse[i]) - quicksum(D[t][item_indices[i], customer_indices[r]] * w[i, r, t] for r in R),
+                        name=f"R4at1_{i}_{t}"
+                    )
+                else:
+                    modelo.addConstr(
+                        It[i, t] == It[i, t-1] + y[i, t-lt[i]] - quicksum(alpha[j][i] * x[j, t] for j in N_reverse[i]) - quicksum(D[t][item_indices[i], customer_indices[r]] * w[i, r, t] for r in R),
+                        name=f"R4at2_{i}_{t}"
+                    )
+            else:
+                if ltf[i] < t:
+                    modelo.addConstr(
+                        It[i, t] == It[i, t-1] + x[i, t-ltf[i]] - quicksum(alpha[j][i] * x[j, t] for j in N_reverse[i]) - quicksum(D[t][item_indices[i], customer_indices[r]] * w[i, r, t] for r in R),
+                        name=f"R5at1_{i}_{t}"
+                    )
+                else:
+                    modelo.addConstr(
+                        It[i, t] == It[i, t-1] - quicksum(alpha[j][i] * x[j, t] for j in N_reverse[i]) - quicksum(D[t][item_indices[i], customer_indices[r]] * w[i, r, t] for r in R),
+                        name=f"R5at2_{i}_{t}"
+                    )
+    # Items finales que estan en una capa distinta de la L1, periodo inicial                
+    for i in set(K1).intersection((set(LEVEL0).intersection(set().union(*layers[1:])))):
+        if ltf[i] < 1:
+            modelo.addConstr(
+                It[i, 1] == I_0[i] + x[i, 1-ltf[i]] - quicksum(alpha[j][i] * x[j, 1] for j in N_reverse[i]) - quicksum(D[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R),
+                name=f"R1atb_{i}_{t}"
+            )
+        else:
+            modelo.addConstr(
+                It[i, 1] == I_0[i] - quicksum(alpha[j][i] * x[j, 1] for j in N_reverse[i]) - quicksum(D[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R),
+                name=f"R1atb_{i}_{t}"
+            )
+    for i in set(K2).intersection((set(LEVEL0).intersection(set().union(*layers[1:])))):
+        if lt[i] < 1:
+            modelo.addConstr(
+                It[i, 1] == I_0[i] + y[i, 1-lt[i]] - quicksum(alpha[j][i] * x[j, 1] for j in N_reverse[i]) - quicksum(D[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R),
+                name=f"R2at_{i}_{t}"
+            )
+        else:
+            modelo.addConstr(
+                It[i, 1] == I_0[i] - quicksum(alpha[j][i] * x[j, 1] for j in N_reverse[i]) - quicksum(D[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R),
+                name=f"R3at_{i}_{t}"
+            )
+    for i in set(K3).intersection((set(LEVEL0).intersection(set().union(*layers[1:])))):
+        if lt[i] < 1:
+            if ltf[i] < 1:
+                modelo.addConstr(
+                    It[i, 1] == I_0[i] + x[i, 1-ltf[i]] + y[i, 1-lt[i]] - quicksum(alpha[j][i] * x[j, 1] for j in N_reverse[i]) - quicksum(D[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R),
+                    name=f"R4at1_{i}_{t}"
+                )
+            else:
+                modelo.addConstr(
+                    It[i, 1] == I_0[i] + y[i, 1-lt[i]] - quicksum(alpha[j][i] * x[j, 1] for j in N_reverse[i]) - quicksum(D[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R),
+                    name=f"R4at2_{i}_{t}"
+                )
+        else:
+            if ltf[i] < 1:
+                modelo.addConstr(
+                    It[i, 1] == I_0[i] + x[i, 1-ltf[i]] - quicksum(alpha[j][i] * x[j, 1] for j in N_reverse[i]) - quicksum(D[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R),
+                    name=f"R5at1_{i}_{t}"
+                )
+            else:
+                modelo.addConstr(
+                    It[i, 1] == I_0[i] - quicksum(alpha[j][i] * x[j, 1] for j in N_reverse[i]) - quicksum(D[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R),
+                    name=f"R5at2_{i}_{t}"
+                )
+
+
+
+
+
+
+
+
 
 
     # Restricciones de MOQs
