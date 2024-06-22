@@ -12,7 +12,7 @@ def chargeEnv(mode = "default"):
             PurchaseItems = pd.read_pickle('./DataFiles/PurchaseItems.pkl')
             RouteItems = pd.read_pickle('./DataFiles/RouteItems.pkl')
             Orders = pd.read_pickle('./DataFiles/Orders.pkl')
-            Orders = Orders[~Orders['MyBOMITEMID'].isin([39, 44, 51, 52, 53])].reset_index(drop=True)
+            Orders = Orders[Orders['MyBOMITEMID'] != 44].reset_index(drop=True)
             Orders['END_DATE'] = pd.to_datetime(Orders['END_DATE'])
             Stock = pd.read_pickle('./DataFiles/Stock.pkl')
             Stock = Stock[Stock['MyBOMITEMID'] != 44].reset_index(drop=True)
