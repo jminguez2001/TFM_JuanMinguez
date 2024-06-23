@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import sys
+import datetime as dt
 # Determinar la ruta absoluta del directorio que contiene este script
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # Determinar la ruta absoluta del directorio raíz del proyecto (un nivel arriba del directorio actual)
@@ -56,7 +57,7 @@ def plotNet(X_results, sets, T):
                 net_production[config_idx, t] += item_values[t][config_idx]
 
     # Plot the net production
-    x_labels = [date.strftime('%y-%m-%d') for date in T[1:]]  
+    x_labels = [date.strftime('%d-%m-%y') for date in T[1:]]  
     x = np.arange(len(x_labels))  # Label locations
     width = 0.5 / num_configs  # Width of the bars
 
@@ -100,7 +101,7 @@ def plotItem(X_results, T, item):
             net_production[config_idx, t] += X_values[t][config_idx]
 
     # Plot the net production
-    x_labels = [date.strftime('%y-%m-%d') for date in T[1:]] 
+    x_labels = [date.strftime('%d-%m-%y') for date in T[1:]] 
     x = np.arange(len(x_labels))  # Label locations
     width = 0.8 / num_configs  # Width of the bars
 
@@ -131,29 +132,48 @@ def plot_inventory(I, time_period, T):
     Genera un gráfico de barras que muestra el inventario para cada ítem en un período de tiempo dado.
 
     Args:
-        I_results (list): Lista de diccionarios con inventarios, donde la clave es una tupla (i, t) que representa el ítem y el período de tiempo.
+        I (dict): Diccionario con inventarios, donde la clave es una tupla (i, t) que representa el ítem y el período de tiempo.
         time_period (int): El periodo de tiempo para el cual se desea visualizar el inventario.
-        T (list): lista de periodos de tiempo
+        T (list): Lista de periodos de tiempo.
 
     Returns:
         None: Muestra un gráfico de barras donde el eje X representa los ítems y el eje Y representa el inventario para el período de tiempo dado.
     """
+    if time_period!= 0:
+        # Filtra el inventario para el período de tiempo dado
+        inventory_for_period = {i: inventory for (i, t), inventory in I.items() if t == time_period}
+    else:
+        inventory_for_period = {i: inventory for i, inventory in I.items()}
 
-    # Filtra el inventario para el período de tiempo dado
-    inventory_for_period = {i: inventory for (i, t), inventory in I.items() if t == time_period}
 
-    # Crea listas de ítems y sus inventarios para el período de tiempo dado
-    items = list(inventory_for_period.keys())
-    inventories = list(inventory_for_period.values())
+    # Separa el inventario del ítem 62 del resto
+    inventory_62 = inventory_for_period.pop(62)
+    items_except_62 = list(inventory_for_period.keys())
+    inventories_except_62 = list(inventory_for_period.values())
 
     # Crea la gráfica de barras
-    plt.figure(figsize=(10, 6))
-    plt.bar(items, inventories, color='blue')
+    fig, ax1 = plt.subplots(figsize=(10, 6))
 
-    # Agrega títulos y etiquetas
-    plt.title(f"Inventario por ítem en el período de tiempo {T[time_period].strftime('%y-%m-%d')}")
-    plt.xlabel("Ítem")
-    plt.ylabel("Inventario")
+    # Grafica los ítems excepto el 62 en el eje principal
+    ax1.bar(items_except_62, inventories_except_62, color='lightblue', label='Otros ítems')
+
+    # Configuración del primer eje
+    ax1.set_xlabel("Ítem")
+    ax1.set_ylabel("Inventario")
+    ax1.set_title(f"Inventario por ítem en el período de tiempo {T[time_period].strftime('%d-%m-%y')}")
+
+    # Crear un segundo eje para el ítem 62
+    ax2 = ax1.twinx()
+    ax2.bar([62], [inventory_62], color='blue', label='Ítem 62')
+    ax2.set_ylabel('Inventario Ítem 62', color='blue')
+    ax2.tick_params(axis='y', labelcolor='blue')
+    ax2.set_ylim(bottom = 0)
+    if inventory_62 == 0:
+        ax2.set_ylim(bottom = 0, top = 1000)
+
+    # Agregar leyendas
+    ax1.legend(loc='upper left')
+    ax2.legend(loc='upper right')
 
     # Muestra la gráfica
     plt.show()
@@ -362,17 +382,17 @@ def plot_balance_over_time(D, B, w, c1, c2, x, y, item_indices, customer_indices
 
     # Crear el gráfico de líneas
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(T[1:], balances, marker='o', linestyle='-', color='b', label='Balance')
-    ax.plot(T[1:], revenues, marker='x', linestyle='--', color='g', label='Ingresos')
-    ax.plot(T[1:], costs, marker='s', linestyle='-.', color='r', label='Costos')
-    ax.plot(T[1:], max_revenues, marker='d', linestyle=':', color='m', label='Ingresos si se satisface toda la demanda')
+    ax.plot(range(1, len(T)), balances, marker='o', linestyle='-', color='b', label='Balance')
+    ax.plot(range(1, len(T)), revenues, marker='x', linestyle='--', color='g', label='Ingresos')
+    ax.plot(range(1, len(T)), costs, marker='s', linestyle='-.', color='r', label='Costos')
+    ax.plot(range(1, len(T)), max_revenues, marker='d', linestyle=':', color='m', label='Ingresos si se satisface toda la demanda')
 
     # Configurar la cuadrícula en el fondo
     ax.set_axisbelow(True)
     ax.grid(True, which='both', linestyle='--', linewidth=0.5)
 
     # Añadir todas las etiquetas del eje X
-    plt.xticks(T[1:])
+    plt.xticks(range(1, len(T)))
 
     # Añadir etiquetas y título
     plt.xlabel('Periodo de Tiempo')
@@ -383,7 +403,7 @@ def plot_balance_over_time(D, B, w, c1, c2, x, y, item_indices, customer_indices
     # Mostrar el gráfico
     plt.show()
 
-def plot_inventory_average(I, I_0, T, NN):
+def plot_inventory_average(I, I0, T, NN):
     """
     Calcula y grafica el inventario promedio por ítem en cada período, dividido entre el ítem 62 y los demás.
 
@@ -401,8 +421,8 @@ def plot_inventory_average(I, I_0, T, NN):
     # Calcular el inventario promedio por ítem para cada período
     for t in range(len(T)):
         if t == 0:
-            val_62 = I_0[62]  # Rodillos, por lo que su inventario es mucho mayor 
-            avg_others = np.mean([I_0[i] for i in NN if i != 62])
+            val_62 = I0[62]  # Rodillos, por lo que su inventario es mucho mayor 
+            avg_others = np.mean([I0[i] for i in NN if i != 62])
         else:
             val_62 = I[62, t] 
             avg_others = np.mean([I[i, t] for i in NN if i != 62])
@@ -414,21 +434,21 @@ def plot_inventory_average(I, I_0, T, NN):
     fig, ax1 = plt.subplots(figsize=(10, 6))
 
     ax2 = ax1.twinx()
-    ax1.plot(T, inventory_avg_others, marker='x', linestyle='--', color='g', label='Inventario Promedio (Demás Items)')
-    ax2.plot(T, inventory_62, marker='o', linestyle='-', color='b', label='Inventario Promedio (Item 62, rodillos)')
+    ax1.plot(range(len(T)), inventory_avg_others, marker='x', linestyle='--', color='g', label='Inventario Promedio (Demás Items)')
+    ax2.plot(range(len(T)), inventory_62, marker='o', linestyle='-', color='b', label='Inventario Item 62 (Rodillos)')
 
     # Configurar la cuadrícula en el fondo
     ax1.set_axisbelow(True)
     ax1.grid(True, which='both', linestyle='--', linewidth=0.5)
 
     # Añadir todas las etiquetas del eje X
-    plt.xticks(T)
+    plt.xticks(range(len(T)))
 
     # Añadir etiquetas y título
     ax1.set_xlabel('Periodo de Tiempo')
     ax1.set_ylabel('Inventario Promedio (Demás Items)', color='g')
-    ax2.set_ylabel('Inventario Promedio (Item 62, rodillos)', color='b')
-    plt.title('Inventario Promedio por Ítem en Cada Período')
+    ax2.set_ylabel('Inventario Item 62 (Rodillos)', color='b')
+    plt.title('Inventario Promedio por Ítem en Cada Periodo')
 
     # Añadir leyendas
     lines_1, labels_1 = ax1.get_legend_handles_labels()
@@ -467,20 +487,66 @@ def plot_cost_comparison(c1, c2, x, y, T, K1, K2, K3):
     # Crear el gráfico de líneas
     fig, ax = plt.subplots(figsize=(12, 6))
 
-    ax.plot(T[1:], production_costs, marker='o', linestyle='-', color='b', label='Costos de Producción')
-    ax.plot(T[1:], purchase_costs, marker='x', linestyle='--', color='g', label='Costos de Compra')
+    ax.plot(range(1, len(T)), production_costs, marker='o', linestyle='-', color='b', label='Costos de Producción')
+    ax.plot(range(1, len(T)), purchase_costs, marker='x', linestyle='--', color='g', label='Costos de Compra')
 
     # Configurar la cuadrícula en el fondo
     ax.set_axisbelow(True)
     ax.grid(True, which='both', linestyle='--', linewidth=0.5)
 
     # Añadir todas las etiquetas del eje X
-    plt.xticks(T[1:])
+    plt.xticks(range(1, len(T)))
     
     # Añadir etiquetas y título
     plt.xlabel('Periodo de Tiempo')
     plt.ylabel('Costos Totales')
     plt.title('Comparación de Costos de Producción y Compra por Período')
+    plt.legend()
+
+    # Mostrar el gráfico
+    plt.show()
+    
+def plot_FabricaCompra_comparison(x, y, T, K1, K2, K3):
+    """
+    Grafica una comparación entre la producción y los costos la compra para los ítems en cada período.
+
+    Args:
+        x (dict): Valores de producción.
+        y (dict): Valores de compra.
+        T (list): Lista de períodos de tiempo.
+        K1 (list): Lista de ítems para c1.
+        K2 (list): Lista de ítems para c2.
+        K3 (list): Lista de ítems para ambos c1 y c2.
+    """
+
+    # Inicializar listas para los costos totales por período
+    production_costs = []
+    purchase_costs = []
+
+    # Calcular los costos para cada período
+    for t in range(1, len(T)):
+        total_production_cost = np.sum([x[i, t] for i in K1+K3])
+        total_purchase_cost = np.sum([y[i, t] for i in K2+K3])
+        production_costs.append(total_production_cost)
+        purchase_costs.append(total_purchase_cost)
+
+    # Crear el gráfico de líneas
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    ax.plot(range(1, len(T)), production_costs, marker='o', linestyle='-', color='b', label='Unidades Producidas')
+    ax.plot(range(1, len(T)), purchase_costs, marker='x', linestyle='--', color='g', label='Unidades Compradas')
+
+    # Configurar la cuadrícula en el fondo
+    ax.set_axisbelow(True)
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+
+    # Añadir todas las etiquetas del eje X
+    plt.xticks(range(1, len(T)))
+    
+    # Añadir etiquetas y título
+    plt.xlabel('Periodo de Tiempo')
+    plt.ylabel('Unidades')
+    plt.title('Comparación de las unidades producidas y compradas')
     plt.legend()
 
     # Mostrar el gráfico
@@ -535,13 +601,13 @@ if __name__ == "__main__":
     # plotNet(Y_results,list(set(K2 + K3) - {62}), T)
     # plotNet(I_results, list(set(K1 + K2 + K3) - {62}), T)
     # plotItem(I_results, T, 62)
-    # plotItem(Y_results, T, 62)
-    # for i in range(len(I_results)): plot_inventory(I_results[i], 0, T)
-    # plot_inventory(I_results[0], 0, T)
+    plotItem(Y_results, T, 62)
+    # plot_inventory(I_0, 0, T)
     # plot_inventory(I_results[0], 12, T)
     # plot_demand_satisfaction(D, W_results[0], T, LEVEL0, R, item_indices, customer_indices)
-    plot_demand_by_period(D, W_results[0], T, LEVEL0, R, item_indices, customer_indices, add_second_bar=True, start_period=7)
+    # plot_demand_by_period(D, W_results[0], T, LEVEL0, R, item_indices, customer_indices, add_second_bar=True, start_period=7)
     # plot_balance_over_time(D, B, W_results[0], c1, c2, X_results[0], Y_results[0], item_indices, customer_indices, LEVEL0, R, K1, K2, K3, T)
     # plot_inventory_average(I_results[0], I_0, T, NN)
-    # plot_cost_comparison(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
-    # plot_pie_chart(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
+    plot_cost_comparison(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
+    plot_FabricaCompra_comparison(X_results[0], Y_results[0], T, K1, K2, K3)
+    plot_pie_chart(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)

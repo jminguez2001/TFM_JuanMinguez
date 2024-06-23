@@ -214,6 +214,8 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
                 )
         
 
+
+
     # Inventario para el resto de periodos, para items a nivel 0
     for i in set(K1).intersection((set(LEVEL0).intersection(set(layers[0])))):
         for t in range(2, len(T)):
@@ -313,6 +315,8 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
                         It[i, t] == It[i, t-1] - quicksum(alpha[j][i] * x[j, t] for j in N_reverse[i]),
                         name=f"R5at2_{i}_{t}"
                     )
+                    
+                    
 
     # Items finales que estan en una capa distinta de la L1
     for i in set(K1).intersection((set(LEVEL0).intersection(set().union(*layers[1:])))):
@@ -505,41 +509,42 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     
     
     # Si quiero ver resultados
-    # with open(f'./Resultados/Outputs/output_{index}.txt', 'w') as file:
-    #     for t in range(1, len(T)):
-    #         for i in LEVEL0:
-    #             for r in R:
-    #                 if w[i, r, t].X != 0 and D[t][item_indices[i]][customer_indices[r]] != 0:
-    #                     file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
-    #                     file.write(f"Demanda {D[t][item_indices[i]][customer_indices[r]]}\n")
-    #                     if t == 1:
-    #                         file.write(f"Stock antes: {I_0[i]}\n")
-    #                     else:
-    #                         file.write(f"Stock antes: {It[i, t-1].X}\n")
-    #                     file.write(f"Stock despues: {It[i, t].X}\n")
-    #                     if i in K1 + K3:
-    #                         file.write(f"Cantidad Producida {x[i, t].X}\n")
-    #                     if i in K2 + K3:
-    #                         file.write(f"Cantidad Comprada {y[i, t].X}\n")
-    #                         if lt[i] < t:
-    #                             file.write(f"Cantidad comprada previamente que llega ahora {y[i, t-lt[i]].X}\n")
-    #                         if i in K2:
-    #                             lead_time = PurchaseItems.loc[PurchaseItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
-    #                         if i in K3:
-    #                             lead_time = MixedItems.loc[MixedItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
-    #                         file.write(f"Lead time {lead_time}\n")
-    #                     file.write("------------------------------------------\n")
-    #                 else:
-    #                     if D[t-1][item_indices[i]][customer_indices[r]] != 0:
-    #                         file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
-    #                         file.write(f"NO SE SATISFACE\n")
-    #                         file.write("------------------------------------------\n")
-    #         file.write("----------------------------------------------------------------\n")
+    with open(f'./Resultados/Outputs/output_{index}.txt', 'w') as file:
+        for t in range(1, len(T)):
+            for i in LEVEL0:
+                for r in R:
+                    if w[i, r, t].X != 0 and D[t][item_indices[i]][customer_indices[r]] != 0:
+                        file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
+                        file.write(f"Demanda {D[t][item_indices[i]][customer_indices[r]]}\n")
+                        if t == 1:
+                            file.write(f"Stock antes: {I_0[i]}\n")
+                        else:
+                            file.write(f"Stock antes: {It[i, t-1].X}\n")
+                        file.write(f"Stock despues: {It[i, t].X}\n")
+                        if i in K1 + K3:
+                            file.write(f"Cantidad Producida {x[i, t].X}\n")
+                        if i in K2 + K3:
+                            file.write(f"Cantidad Comprada {y[i, t].X}\n")
+                            if lt[i] < t:
+                                file.write(f"Cantidad comprada previamente que llega ahora {y[i, t-lt[i]].X}\n")
+                            if i in K2:
+                                lead_time = PurchaseItems.loc[PurchaseItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
+                            if i in K3:
+                                lead_time = MixedItems.loc[MixedItems["MyBOMITEMID"] == i, "LEADTIME"].values[0]
+                            file.write(f"Lead time {lead_time}\n")
+                        file.write("------------------------------------------\n")
+                    else:
+                        if D[t-1][item_indices[i]][customer_indices[r]] != 0:
+                            file.write(f"Item, cliente, horizonte temporal: {i, r, t}\n")
+                            file.write(f"NO SE SATISFACE\n")
+                            file.write("------------------------------------------\n")
+            file.write("----------------------------------------------------------------\n")
     
     
     
     sol = modelo.getAttr("ObjVal")
+    tcpu = modelo.Runtime
     modelo.close()
     env.close()
 
-    return udsNoSatisfecha/totalUds*100, NoSatisfecha/totalPedidos*100, sol, solI, solX, solY, solW
+    return udsNoSatisfecha/totalUds*100, NoSatisfecha/totalPedidos*100, sol, tcpu,solI, solX, solY, solW
