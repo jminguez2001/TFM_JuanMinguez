@@ -5,6 +5,9 @@ import numpy as np
 import os
 import sys
 import datetime as dt
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+
+
 # Determinar la ruta absoluta del directorio que contiene este script
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # Determinar la ruta absoluta del directorio raíz del proyecto (un nivel arriba del directorio actual)
@@ -83,7 +86,7 @@ def plotNet(X_results, sets, T):
     # Show the plot
     plt.show()
 
-def plotItem(X_results, T, item):
+def plotItem(X_results, T, item, titulo):
     X_values = []
     for t in range(1,len(T)):
         x = []
@@ -92,39 +95,36 @@ def plotItem(X_results, T, item):
         X_values.append(x)
 
     num_configs = len(X_values[0])
-    num_periods = len(T) - 1  # Exclude the first period
+    num_periods = len(T) - 1  
     net_production = np.zeros((num_configs, num_periods))
 
-    # Calculate the net production for each configuration for each period
     for t in range(num_periods):
         for config_idx in range(num_configs):
             net_production[config_idx, t] += X_values[t][config_idx]
 
-    # Plot the net production
     x_labels = [date.strftime('%d-%m-%y') for date in T[1:]] 
-    x = np.arange(len(x_labels))  # Label locations
-    width = 0.8 / num_configs  # Width of the bars
+    x = np.arange(len(x_labels)) 
+    width = 0.8 / num_configs  
 
     fig, ax = plt.subplots()
-    colors = plt.get_cmap('tab20', num_configs)  # Change color palette
+    colors = plt.get_cmap('tab20', num_configs) 
 
     for config_idx in range(num_configs):
         values = net_production[config_idx]
-        ax.bar(x + config_idx * width, values, width, label=f'Config {config_idx + 1}', color=colors(config_idx))
+        ax.bar(x + config_idx * width, values, width
+               #, label=f'Config {config_idx + 1}'
+               , color=colors(config_idx))
 
-    # Add labels, title, and legend
-    ax.set_xlabel('Time Period')
-    ax.set_ylabel('Value')
-    ax.set_title(f'Value for Each Configuration in Each Time Period for item {item}')
+    ax.set_xlabel('Periodo')
+    ax.set_ylabel('Unidades')
+    ax.set_title(titulo)
     ax.set_xticks(x + width * (num_configs - 1) / 2)
-    ax.set_xticklabels(x_labels)
-    ax.legend()
+    ax.set_xticklabels(range(1,len(T)))
+    # ax.legend()
 
-    # Add vertical lines to separate time periods
     for pos in x:
         ax.axvline(pos + width * (num_configs - 1) / 2 + (x[1]-x[0])/2 , color='grey', linestyle='--')
 
-    # Show the plot
     plt.show()
     
 def plot_inventory(I, time_period, T):
@@ -365,9 +365,23 @@ def plot_balance_over_time(D, B, w, c1, c2, x, y, item_indices, customer_indices
     revenues = []
     costs = []
     max_revenues = []
+    
+    # Inicializar las listas para el primer periodo
+    revenue = np.sum([D[1][item_indices[i], customer_indices[r]] * B[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R for i in LEVEL0])
+    cost_x = np.sum([float(c1[i]) * x[i, 1] for i in K1 + K3])
+    cost_y = np.sum([float(c2[i]) * y[i, 1] for i in K2 + K3])
+    cost = cost_x + cost_y
+    balance = revenue - cost
+    max_revenue = np.sum([D[1][item_indices[i], customer_indices[r]] * B[1][item_indices[i], customer_indices[r]] for r in R for i in LEVEL0])
+        
+    balances.append(balance)
+    revenues.append(revenue)
+    costs.append(cost)
+    max_revenues.append(max_revenue)
+
 
     # Calcular el balance, los ingresos, los costos y los beneficios máximos para cada período
-    for t in range(1, len(T)):
+    for t in range(2, len(T)):
         revenue = np.sum([D[t][item_indices[i], customer_indices[r]] * B[t][item_indices[i], customer_indices[r]] * w[i, r, t] for r in R for i in LEVEL0])
         cost_x = np.sum([float(c1[i]) * x[i, t] for i in K1 + K3])
         cost_y = np.sum([float(c2[i]) * y[i, t] for i in K2 + K3])
@@ -375,17 +389,17 @@ def plot_balance_over_time(D, B, w, c1, c2, x, y, item_indices, customer_indices
         balance = revenue - cost
         max_revenue = np.sum([D[t][item_indices[i], customer_indices[r]] * B[t][item_indices[i], customer_indices[r]] for r in R for i in LEVEL0])
         
-        balances.append(balance)
-        revenues.append(revenue)
-        costs.append(cost)
-        max_revenues.append(max_revenue)
+        balances.append(balance+balances[t-2])
+        revenues.append(revenue+revenues[t-2])
+        costs.append(cost+costs[t-2])
+        max_revenues.append(max_revenue+max_revenues[t-2])
 
     # Crear el gráfico de líneas
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(range(1, len(T)), balances, marker='o', linestyle='-', color='b', label='Balance')
     ax.plot(range(1, len(T)), revenues, marker='x', linestyle='--', color='g', label='Ingresos')
-    ax.plot(range(1, len(T)), costs, marker='s', linestyle='-.', color='r', label='Costos')
-    ax.plot(range(1, len(T)), max_revenues, marker='d', linestyle=':', color='m', label='Ingresos si se satisface toda la demanda')
+    ax.plot(range(1, len(T)), costs, marker='s', linestyle='-.', color='r', label='Costes')
+    # ax.plot(range(1, len(T)), max_revenues, marker='d', linestyle=':', color='m', label='Ingresos si se satisface toda la demanda')
 
     # Configurar la cuadrícula en el fondo
     ax.set_axisbelow(True)
@@ -394,10 +408,16 @@ def plot_balance_over_time(D, B, w, c1, c2, x, y, item_indices, customer_indices
     # Añadir todas las etiquetas del eje X
     plt.xticks(range(1, len(T)))
 
+    # Crea una lista de ticks con el rango deseado y el paso que quieras
+    yticks = np.arange(-1e6, 8e6, step=0.5e6)  # Aquí puedes ajustar el paso como desees
+    # Aplica los nuevos ticks al eje y
+    plt.yticks(yticks)
+    print(revenues[11])
+    print(costs[11])
     # Añadir etiquetas y título
     plt.xlabel('Periodo de Tiempo')
-    plt.ylabel('Valor')
-    plt.title('Balance, Ingresos, Costos y Ingresos Máximos para Cada Periodo de Tiempo')
+    plt.ylabel('Valor monetario en Euros')
+    plt.title('Evolución del Balance de Ingresos y Costes')
     plt.legend()
 
     # Mostrar el gráfico
@@ -443,12 +463,12 @@ def plot_inventory_average(I, I0, T, NN):
 
     # Añadir todas las etiquetas del eje X
     plt.xticks(range(len(T)))
-
+    
     # Añadir etiquetas y título
     ax1.set_xlabel('Periodo de Tiempo')
-    ax1.set_ylabel('Inventario Promedio (Demás Items)', color='g')
-    ax2.set_ylabel('Inventario Item 62 (Rodillos)', color='b')
-    plt.title('Inventario Promedio por Ítem en Cada Periodo')
+    ax1.set_ylabel('Inventario Promedio (Ítem 62 excluido)', color='g')
+    ax2.set_ylabel('Inventario Ítem 62 (Rodillo)', color='b')
+    plt.title('Evolución del Inventario Promedio')
 
     # Añadir leyendas
     lines_1, labels_1 = ax1.get_legend_handles_labels()
@@ -487,8 +507,8 @@ def plot_cost_comparison(c1, c2, x, y, T, K1, K2, K3):
     # Crear el gráfico de líneas
     fig, ax = plt.subplots(figsize=(12, 6))
 
-    ax.plot(range(1, len(T)), production_costs, marker='o', linestyle='-', color='b', label='Costos de Producción')
-    ax.plot(range(1, len(T)), purchase_costs, marker='x', linestyle='--', color='g', label='Costos de Compra')
+    ax.plot(range(1, len(T)), production_costs, marker='o', linestyle='-', color='b', label='Costes de Producción')
+    ax.plot(range(1, len(T)), purchase_costs, marker='x', linestyle='--', color='g', label='Costes de Compra')
 
     # Configurar la cuadrícula en el fondo
     ax.set_axisbelow(True)
@@ -499,8 +519,8 @@ def plot_cost_comparison(c1, c2, x, y, T, K1, K2, K3):
     
     # Añadir etiquetas y título
     plt.xlabel('Periodo de Tiempo')
-    plt.ylabel('Costos Totales')
-    plt.title('Comparación de Costos de Producción y Compra por Período')
+    plt.ylabel('Valor monetario en Euros')
+    plt.title('Comparación de Costes de Producción y Compra por Periodo')
     plt.legend()
 
     # Mostrar el gráfico
@@ -552,7 +572,7 @@ def plot_FabricaCompra_comparison(x, y, T, K1, K2, K3):
     # Mostrar el gráfico
     plt.show()
 
-def plot_pie_chart(c1, c2, x, y, T, K1, K2, K3):
+def plot_pie_chart_costs(c1, c2, x, y, T, K1, K2, K3):
     """
     Crea un gráfico circular con el neto de compra y neto de producción.
 
@@ -572,23 +592,71 @@ def plot_pie_chart(c1, c2, x, y, T, K1, K2, K3):
     net_purchase = np.sum([c2[i] * y[i, t] for t in range(1, len(T)) for i in K2 + K3])
 
     # Datos para el gráfico de pastel
-    labels = 'Neto de Producción', 'Neto de Compra'
+    labels = 'Total de Producción', 'Total de Compra'
     sizes = [net_production, net_purchase]
     colors = ['#ff9999', '#66b3ff']
     explode = (0.1, 0)  # Resalta el primer segmento
-
+    
+    def autopct_format(values):
+        def my_format(pct):
+            total = sum(values)
+            return '{:.1f}%\n{:.2f} Euros'.format(pct, total)
+        return my_format
+    
     # Crear el gráfico de pastel
     fig, ax = plt.subplots(figsize=(8, 8))
-    ax.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.1f%%',
-           shadow=True, startangle=90)
+    ax.pie(sizes, explode=explode, labels=labels, colors=colors, autopct=autopct_format(sizes),
+           shadow=True, startangle=180, textprops={'fontsize': 18})
     ax.axis('equal')  # Igualar el eje para asegurar que el gráfico de pastel es circular
 
     # Añadir título
-    plt.title('Distribución de costes de Producción y Compra')
+    plt.title('Distribución de costes de Producción y Compra', fontsize = 20)
 
     # Mostrar el gráfico
     plt.show()
 
+def plot_pie_chart_invent(x, y, T, K1, K2, K3):
+    """
+    Crea un gráfico circular con el neto de compra y neto de producción.
+
+    Args:
+        x (dict): Valores de producción.
+        y (dict): Valores de compra.
+        T (list): Lista de períodos de tiempo.
+        K1 (list): Lista de ítems para fabricacion.
+        K2 (list): Lista de ítems para compra.
+        K3 (list): Lista de ítems para ambos.
+    """
+
+    # Calcular el neto de producción y el neto de compra
+    net_production = np.sum([x[i, t] for t in range(1, len(T)) for i in K1 + K3])
+    net_purchase = np.sum([y[i, t] for t in range(1, len(T)) for i in K2 + K3])
+
+    # Datos para el gráfico de pastel
+    labels = 'Unidades\nFabricadas', 'Unidades\nCompradas'
+    sizes = [net_production, net_purchase]
+    colors = ['#ff9999', '#66b3ff']
+    explode = (0.1, 0)  # Resalta el primer segmento
+
+    # Función para mostrar tanto el porcentaje como el valor neto
+    def autopct_format(values):
+        def my_format(pct):
+            total = sum(values)
+            val = int(round(pct*total/100.0))
+            return '{:.1f}%\n{:d} Unidades'.format(pct, val)
+        return my_format
+
+    # Crear el gráfico de pastel
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.pie(sizes, explode=explode, labels=labels, colors=colors, autopct=autopct_format(sizes),
+           shadow=True, startangle=180, textprops={'fontsize': 18})
+    ax.axis('equal') # Igualar el eje para asegurar que el gráfico de pastel es circular
+
+    # Añadir título
+    plt.title('Distribución de las unidades Fabricadas y Compradas', fontsize = 20)
+
+    # Mostrar el gráfico
+    plt.show()
 
 if __name__ == "__main__":
     results, I_results, X_results, Y_results, W_results = load_results()
@@ -600,14 +668,15 @@ if __name__ == "__main__":
     # plotNet(X_results, K1+K3, T)
     # plotNet(Y_results,list(set(K2 + K3) - {62}), T)
     # plotNet(I_results, list(set(K1 + K2 + K3) - {62}), T)
-    # plotItem(I_results, T, 62)
-    plotItem(Y_results, T, 62)
+    # plotItem(Y_results, T, 62, "Unidades compradas por periodo del ítem 62")
     # plot_inventory(I_0, 0, T)
     # plot_inventory(I_results[0], 12, T)
     # plot_demand_satisfaction(D, W_results[0], T, LEVEL0, R, item_indices, customer_indices)
     # plot_demand_by_period(D, W_results[0], T, LEVEL0, R, item_indices, customer_indices, add_second_bar=True, start_period=7)
     # plot_balance_over_time(D, B, W_results[0], c1, c2, X_results[0], Y_results[0], item_indices, customer_indices, LEVEL0, R, K1, K2, K3, T)
-    # plot_inventory_average(I_results[0], I_0, T, NN)
-    plot_cost_comparison(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
-    plot_FabricaCompra_comparison(X_results[0], Y_results[0], T, K1, K2, K3)
-    plot_pie_chart(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
+    plot_inventory_average(I_results[0], I_0, T, NN)
+    # plot_cost_comparison(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
+    # plot_FabricaCompra_comparison(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
+    # plot_pie_chart_costs(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
+    # plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, K2, K3)
+    # plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
