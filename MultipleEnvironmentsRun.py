@@ -62,6 +62,8 @@ if __name__ == '__main__':
                     minimum_delivery_rate = mdr,
                     index = contador)
 
+                
+                
                 new_row = {
                     'Environment': modo, 'Available_Stock': s, 'Param_MOQ': m, 'leadtime_purchase': lp, 'leadtime_routes': lr, 
                     'Param_I_0': i0_p, 'Costes_invent': ci, 'Invent_Capacity': IQ, 'Fabrica_Capacity': FQ, 
@@ -81,13 +83,14 @@ if __name__ == '__main__':
 
                                 
     
+    
     print(results.iloc[:, 5:])
-    results.to_excel("./Resultados/RESULTADOS.xlsx", sheet_name = "resultados", index=False)
-    with open('./Resultados/I_results.pkl', 'wb') as f:
-        pickle.dump(I_results, f)
-    with open('./Resultados/X_results.pkl', 'wb') as f:
-        pickle.dump(X_results, f)
-    with open('./Resultados/Y_results.pkl', 'wb') as f:
-        pickle.dump(Y_results, f)
-    with open('./Resultados/W_results.pkl', 'wb') as f:
-        pickle.dump(W_results, f)        
+    # results.to_excel("./Resultados/RESULTADOS.xlsx", sheet_name = "resultados", index=False)
+    # with open('./Resultados/I_results.pkl', 'wb') as f:
+    #     pickle.dump(I_results, f)
+    # with open('./Resultados/X_results.pkl', 'wb') as f:
+    #     pickle.dump(X_results, f)
+    # with open('./Resultados/Y_results.pkl', 'wb') as f:
+    #     pickle.dump(Y_results, f)
+    # with open('./Resultados/W_results.pkl', 'wb') as f:
+    #     pickle.dump(W_results, f)        

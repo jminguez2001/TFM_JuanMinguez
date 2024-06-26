@@ -599,7 +599,7 @@ def plot_pie_chart_costs(c1, c2, x, y, T, K1, K2, K3):
     
     def autopct_format(values):
         def my_format(pct):
-            total = sum(values)
+            total = float(round(pct*sum(values),2)/100)
             return '{:.1f}%\n{:.2f} Euros'.format(pct, total)
         return my_format
     
@@ -673,10 +673,10 @@ if __name__ == "__main__":
     # plot_inventory(I_results[0], 12, T)
     # plot_demand_satisfaction(D, W_results[0], T, LEVEL0, R, item_indices, customer_indices)
     # plot_demand_by_period(D, W_results[0], T, LEVEL0, R, item_indices, customer_indices, add_second_bar=True, start_period=7)
-    # plot_balance_over_time(D, B, W_results[0], c1, c2, X_results[0], Y_results[0], item_indices, customer_indices, LEVEL0, R, K1, K2, K3, T)
-    plot_inventory_average(I_results[0], I_0, T, NN)
+    plot_balance_over_time(D, B, W_results[0], c1, c2, X_results[0], Y_results[0], item_indices, customer_indices, LEVEL0, R, K1, K2, K3, T)
+    # plot_inventory_average(I_results[0], I_0, T, NN)
     # plot_cost_comparison(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
     # plot_FabricaCompra_comparison(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
-    # plot_pie_chart_costs(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
-    # plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, K2, K3)
-    # plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
+    plot_pie_chart_costs(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
+    plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, K2, K3)
+    plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
