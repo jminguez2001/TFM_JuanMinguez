@@ -3,3 +3,15 @@
 *.log
 # Compiled Python bytecode
 *.py[cod]
+
+# Global parameters
+globalParameters.py
+
+# Resultados
+/Resultados
+
+# Imágenes
+/Imágenes
+
+# Counter
+/.VSCodeCounter
