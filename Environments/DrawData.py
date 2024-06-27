@@ -657,12 +657,64 @@ def plot_pie_chart_invent(x, y, T, K1, K2, K3):
 
     # Mostrar el gráfico
     plt.show()
+    
+    
+def plot_route_production_comparison(routeProduction, x_values_list, T, K1, K3):
+    """
+    Genera un gráfico de barras para comparar el valor neto de x por ruta para cada configuración,
+    considerando solo los ítems en K1 y K3.
+
+    Args:
+        routeProduction (dict): Diccionario donde las claves son MyBOMITEMID y los valores son LINEROUTEID.
+        x_values_list (list of dict): Lista de diccionarios donde las claves son MyBOMITEMID y los valores son los valores netos de x.
+        K1 (list): Lista de ítems en K1.
+        K3 (list): Lista de ítems en K3.
+    """
+    # Unir K1 y K3
+    K1_K3 = set(K1 + K3)
+
+    # Inicializar un diccionario para almacenar los valores de x por ruta y por configuración
+    route_config_values = {route: [0] * len(x_values_list) for route in set(routeProduction.values())}
+
+    # Sumar los valores de x en todas las configuraciones
+    for config_idx, x_values in enumerate(x_values_list):
+        for item, route in routeProduction.items():
+            route_config_values[route][config_idx] += np.sum([x_values[item,t] for t in range(1, len(T))])
+
+    # Crear listas para el gráfico de barras
+    routes = list(route_config_values.keys())
+    n_configs = len(x_values_list)
+    width = 0.5 / n_configs  # Ancho de las barras
+
+    # Configurar el tamaño de la figura
+    plt.figure(figsize=(12, 8))
+
+    # Obtener una paleta de colores
+    cmap = plt.get_cmap('tab20')
+
+    # Crear el gráfico de barras
+    for config_idx in range(n_configs):
+        config_values = [route_config_values[route][config_idx] for route in routes]
+        plt.bar(np.arange(len(routes)) + config_idx * width, config_values, width=width, color=cmap(config_idx % cmap.N), align='center', label=f'Configuración {config_idx + 1}')
+
+    # Etiquetas y título del gráfico
+    plt.xlabel('Rutas (LINEROUTEID)')
+    plt.ylabel('Valor Neto de Produccion')
+    plt.title('Comparación de Valor Neto de produccion por Ruta y Configuración')
+    plt.xticks(np.arange(len(routes)) + width * (n_configs - 1) / 2, routes)
+    plt.legend()
+
+    # Mostrar el gráfico
+    plt.show()
 
 if __name__ == "__main__":
     results, I_results, X_results, Y_results, W_results = load_results()
-    BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv = chargeEnv(mode = results["Environment"].values[0])
-    NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, c_invent, Q_invent, Q_fabrica, MOQ1, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv)
-        
+    BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, StdCost, Tenv = chargeEnv(mode = results["Environment"].values[0])
+    NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, c_std, c_invent, Q_invent, Q_fabrica, MOQ1, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, StdCost, Tenv)
+    routeProduction = {
+    **{key: value for key, value in zip(RouteItems["MyBOMITEMID"], RouteItems["LINEROUTEID"])},
+    **{key: value for key, value in zip(MixedItems["MyBOMITEMID"], MixedItems["LINEROUTEID"])}
+    }    # Diccionario de rutas-item
     
 
     # plotNet(X_results, K1+K3, T)
@@ -673,10 +725,11 @@ if __name__ == "__main__":
     # plot_inventory(I_results[0], 12, T)
     # plot_demand_satisfaction(D, W_results[0], T, LEVEL0, R, item_indices, customer_indices)
     # plot_demand_by_period(D, W_results[0], T, LEVEL0, R, item_indices, customer_indices, add_second_bar=True, start_period=7)
-    plot_balance_over_time(D, B, W_results[0], c1, c2, X_results[0], Y_results[0], item_indices, customer_indices, LEVEL0, R, K1, K2, K3, T)
+    # plot_balance_over_time(D, B, W_results[0], c1, c2, X_results[0], Y_results[0], item_indices, customer_indices, LEVEL0, R, K1, K2, K3, T)
     # plot_inventory_average(I_results[0], I_0, T, NN)
     # plot_cost_comparison(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
     # plot_FabricaCompra_comparison(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
-    plot_pie_chart_costs(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
-    plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, K2, K3)
-    plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
+    # plot_pie_chart_costs(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
+    # plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, K2, K3)
+    # plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
+    plot_route_production_comparison(routeProduction, X_results, T, K1, K3)

@@ -5,6 +5,7 @@ import globalParameters
 from gurobipy import *
 from Environments.chargeEnvironment import chargeEnv
 from Environments.chargeSetParams import charge_SetParams
+from Environments.AnalyticParams import calculaAnalyticParams
 
 
 
@@ -41,7 +42,7 @@ def Test(mode = "default", Available_Stock = True, Param_MOQ = True,
     BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, StdCost, Tenv = chargeEnv(mode = mode)
 
 
-    NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, c_invent, Q_invent, Q_fabrica, MOQ1, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv)
+    NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, c_std, c_invent, Q_invent, Q_fabrica, MOQ1, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, StdCost, Tenv)
     
 
     # Se modifican los valores segun la configuracion introducida
@@ -483,7 +484,7 @@ def Test(mode = "default", Available_Stock = True, Param_MOQ = True,
     # Optimizacion
     modelo.optimize()
     
-    NoSatisfecha = totalPedidos = udsNoSatisfecha = totalUds = 0
+    Satisfecha = totalPedidos = udsSatisfecha = totalUds = 0
 
     for t in range(1, len(T)):
         for i in LEVEL0:
@@ -492,9 +493,9 @@ def Test(mode = "default", Available_Stock = True, Param_MOQ = True,
                 if demand != 0:
                     totalPedidos += 1
                     totalUds += demand
-                    if w[i, r, t].X == 0:
-                        NoSatisfecha += 1
-                        udsNoSatisfecha += demand
+                    if w[i, r, t].X == 1:
+                        Satisfecha += 1
+                        udsSatisfecha += demand
     
     # Se guardan las soluciones
     solI = {(i, t): None for i in NN for t in range(0, len(T))}
@@ -541,10 +542,11 @@ def Test(mode = "default", Available_Stock = True, Param_MOQ = True,
             file.write("----------------------------------------------------------------\n")
     
     
+    margen, I0_comprometido, If_comprometido, net_purchase, uds_fabricadas = calculaAnalyticParams(solX, solY, solW, c1, c2, c_std, T, LEVEL0, K1, K2, K3, R, D, B, item_indices, customer_indices, solI, I_0)
     
     sol = modelo.getAttr("ObjVal")
     tcpu = modelo.Runtime
     modelo.close()
     env.close()
 
-    return udsNoSatisfecha/totalUds*100, NoSatisfecha/totalPedidos*100, sol, tcpu,solI, solX, solY, solW
+    return sol, tcpu, solI, solX, solY, solW, margen, I0_comprometido, If_comprometido, net_purchase, uds_fabricadas, udsSatisfecha/totalUds*100, Satisfecha/totalPedidos*100

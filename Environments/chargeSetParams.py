@@ -4,24 +4,8 @@ import pandas as pd
 import datetime as dt
 from BOM_graph.StudyBOM import GenerateGraph
 
-def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv):
-    """ Carga los conjuntos y parametros del sistema en funcion de los datos de entrada y la configuracion introducida
-
-    Args:
-        BOM (pd.DataFrame): _description_
-        MixedItems (_type_): _description_
-        PurchaseItems (_type_): _description_
-        RouteItems (_type_): _description_
-        Orders (_type_): _description_
-        Stock (_type_): _description_
-        Tenv (_type_): _description_
-        Param_MOQ (bool, optional): _description_. Defaults to True.
-        leadtime_purchase (bool, optional): _description_. Defaults to True.
-        leadtime_routes (bool, optional): _description_. Defaults to False.
-
-    Returns:
-        _type_: _description_
-    """
+def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, StdCost, Tenv):
+    
     # Grafo
     G = GenerateGraph(BOM, typeG_ND = False, connected = True)
 
@@ -105,6 +89,9 @@ def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, 
         **{key: float(value) for key, value in zip(PurchaseItems["MyBOMITEMID"], PurchaseItems["UNITPRICE_Compra"])},
         **{key: float(value) for key, value in zip(MixedItems["MyBOMITEMID"], MixedItems["UNITPRICE_Compra"])}
     }
+    
+    c_std = {**{key: float(value) for key, value in zip(StdCost["MyBOMITEMID"], StdCost["UNITPRICE"])} 
+             }
 
     # Costes de inventario
     c_invent = {
@@ -164,4 +151,4 @@ def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, 
             else:
                 alpha[i][j] = 0
 
-    return (NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, c_invent, Q_invent, Q_fabrica, MOQ1, MOQ2, lt, ltf, I_0, alpha)
+    return (NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, c_std, c_invent, Q_invent, Q_fabrica, MOQ1, MOQ2, lt, ltf, I_0, alpha)
