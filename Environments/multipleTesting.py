@@ -8,7 +8,7 @@ from Environments.chargeSetParams import charge_SetParams
 
 
 
-def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True, 
+def Test(mode = "default", Available_Stock = True, Param_MOQ = True, 
          leadtime_purchase = True, leadtime_routes = False,
          Param_I_0 = True, Costes_invent = False, Invent_Capacity = False
          , Fabrica_Capacity = False 
@@ -38,7 +38,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     env = Env(params = params)
     
     # Definición de los parámetros del problema
-    BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv = chargeEnv(mode = mode)
+    BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, StdCost, Tenv = chargeEnv(mode = mode)
 
 
     NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, c_invent, Q_invent, Q_fabrica, MOQ1, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv)
@@ -82,7 +82,7 @@ def Test(mode = "TOY", Available_Stock = True, Param_MOQ = True,
     ltf = {key: int(value*ltf_Multiplier) for key, value in ltf.items()}
     
     # Multiplicador de las MOQ1
-    MOQ1  = {key: int(value * MOQ1_multipliter) if value != 1 else value for key, value in MOQ1.items()}
+    MOQ1  = {key: max(int(value * MOQ1_multipliter), 1) if value != 1 else value for key, value in MOQ1.items()}
     
     # c1(c2)
     if c1_fc2:

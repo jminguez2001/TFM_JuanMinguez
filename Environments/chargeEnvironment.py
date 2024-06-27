@@ -16,6 +16,8 @@ def chargeEnv(mode = "default"):
             Orders['END_DATE'] = pd.to_datetime(Orders['END_DATE'])
             Stock = pd.read_pickle('./DataFiles/Stock.pkl')
             Stock = Stock[Stock['MyBOMITEMID'] != 44].reset_index(drop=True)
+            StdCost = pd.read_pickle('./DataFiles/StandardCost.pkl')
+            StdCost = StdCost[StdCost['MyBOMITEMID'] != 44].reset_index(drop=True)
             Tenv = 13
             
             # Inventamos los valores que no se nos dan, ya luego se verá que se hace
@@ -29,7 +31,7 @@ def chargeEnv(mode = "default"):
             RouteItems["CAPACITY"] = 2000000
             MixedItems["CAPACITY"] = 2000000
             
-            return (BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, Tenv)
+            return (BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, StdCost, Tenv)
         case "TOY":
             BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock = chargeToy()
-            return (BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, 5)
+            return (BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, [], 5) # la lista vacia es porque el uso de StdCost se desarrollo posteriormente a TOY, una vez TOY ya no se usaba
