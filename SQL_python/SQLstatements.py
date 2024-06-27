@@ -66,3 +66,6 @@ INNER JOIN
 ON UPPER(t1.BOMITEMID) = UPPER(t2.ITEMID)
 ;
 '''
+query_getStdCost = '''
+SELECT * FROM iPurchase.STANDARDCOST;
+'''
