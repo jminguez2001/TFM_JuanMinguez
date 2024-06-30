@@ -15,6 +15,7 @@ def Test(mode = "default", Available_Stock = True, Param_MOQ = True,
          , Fabrica_Capacity = False 
          , c_act_Multiplier = 1, lt_Multiplier = 1, ltf_Multiplier = 1, MOQ1_multipliter = 1
          , c1_fc2 = False, c1_fc2_multiplier = 1
+         , Q_invent_Multiplier = 1, c2_Multiplier = 1
          , minimum_delivery_rate = 0,
          index = 0):
     """Simula el modelo para la configuracion introducida
@@ -89,6 +90,14 @@ def Test(mode = "default", Available_Stock = True, Param_MOQ = True,
     if c1_fc2:
         c1.update({key: float(c2[key] * c1_fc2_multiplier) for key in MixedItems["MyBOMITEMID"]})
         c1.update({key: float(c1[key]) for key in RouteItems["MyBOMITEMID"]})
+        
+    # Multiplicador capacidades de inventario
+    if Invent_Capacity:
+        Q_invent = {key: max(int(value*Q_invent_Multiplier), 1) for key, value in Q_invent.items()}
+    
+    # Multiplicador costes de compra
+    c2 = {key: float(value*c2_Multiplier) for key, value in c2.items()}
+    
     
     # Inicialización del modelo
     modelo = Model("Ejercicio", env = env)    
@@ -542,7 +551,7 @@ def Test(mode = "default", Available_Stock = True, Param_MOQ = True,
             file.write("----------------------------------------------------------------\n")
     
     
-    margen, I0_comprometido, If_comprometido, net_purchase, uds_fabricadas = calculaAnalyticParams(solX, solY, solW, c1, c2, c_std, T, LEVEL0, K1, K2, K3, R, D, B, item_indices, customer_indices, solI, I_0)
+    margen, I0_comprometido, If_comprometido, net_purchase, uds_fabricadas = calculaAnalyticParams(solX, solY, solW, c1, c2, c_std, T, LEVEL0, K1, K2, K3, R, D, B, item_indices, customer_indices, solI)
     
     sol = modelo.getAttr("ObjVal")
     tcpu = modelo.Runtime

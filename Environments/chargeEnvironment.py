@@ -23,7 +23,7 @@ def chargeEnv(mode = "default"):
             # Inventamos los valores que no se nos dan, ya luego se verá que se hace
             RouteItems["LEADTIME"] = 0 
             MixedItems["LEADTIME_ROUTES"] = 0
-            Stock["Invent_Cost"] = 0.1
+            Stock["Invent_Cost"] = 2.61
             
             Stock["CAPACITY"] = 2000 
             Stock.loc[Stock["ITEMID"].str.startswith('42'), "CAPACITY"] = 40000

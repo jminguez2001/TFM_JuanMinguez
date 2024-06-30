@@ -69,7 +69,7 @@ def plotNet(X_results, sets, T):
 
     for config_idx in range(num_configs):
         values = net_production[config_idx]
-        ax.bar(x + config_idx * width, values, width, label=f'Config {config_idx + 1}', color=colors(config_idx))
+        ax.bar(x + config_idx * width, values, width, label=f'Escenario {config_idx + 1}', color=colors(config_idx))
 
     # Add labels, title, and legend
     ax.set_xlabel('Time Period')
@@ -85,6 +85,103 @@ def plotNet(X_results, sets, T):
 
     # Show the plot
     plt.show()
+
+def plotNet_Costes(X_results, sets, T, c):
+    X_values = []
+    for i in sorted(sets):
+        t_values = []
+        for t in range(1, len(T)):
+            x = []
+            for j in range(len(X_results)):
+                x.append(X_results[j][i,t]*c[i])
+            t_values.append(x)   
+        X_values.append(t_values)
+
+    num_configs = len(X_values[0][0])
+    num_periods = len(T)-1 
+    net_production = np.zeros((num_configs, num_periods))
+
+    # Calculate the net production for each configuration for each period
+    for t in range(num_periods):
+        for config_idx in range(num_configs):
+            for item_values in X_values:
+                net_production[config_idx, t] += item_values[t][config_idx]
+
+    # Plot the net production
+    x_labels = [i for i in range(1, len(T))]  
+    x = np.arange(len(x_labels))  # Label locations
+    width = 0.7 / num_configs  # Width of the bars
+
+    fig, ax = plt.subplots()
+    colors = plt.get_cmap('tab20', num_configs)  # Change color palette
+
+    for config_idx in range(num_configs):
+        values = net_production[config_idx]
+        ax.bar(x + config_idx * width, values, width, label=f'Escenario {config_idx}', color=colors(config_idx))
+
+    # Add labels, title, and legend
+    ax.set_xlabel('Periodo de Tiempo', fontsize = 16)
+    ax.set_ylabel('Valor en Euros', fontsize = 16)
+    ax.set_title('Inversión en cada periodo de tiempo', fontsize = 18)
+    ax.set_xticks(x + width * (num_configs - 1) / 2)
+    ax.set_xticklabels(x_labels)
+    ax.legend()
+
+    # Add vertical lines to separate time periods
+    for pos in x:
+        ax.axvline(pos + width * (num_configs - 1) / 2 + (x[1]-x[0])/2 , color='grey', linestyle='--')
+
+    # Show the plot
+    plt.show()
+
+    
+def plotNetI_comprometido(X_results, sets, T, c_std):
+    X_values = []
+    for i in sorted(sets):
+        t_values = []
+        for t in range(len(T)):
+            x = []
+            for j in range(len(X_results)):
+                x.append(X_results[j][i,t]*c_std[i])
+            t_values.append(x)   
+        X_values.append(t_values)
+
+    num_configs = len(X_values[0][0])
+    num_periods = len(T)
+    net_production = np.zeros((num_configs, num_periods))
+
+    # Calculate the net production for each configuration for each period
+    for t in range(num_periods):
+        for config_idx in range(num_configs):
+            for item_values in X_values:
+                net_production[config_idx, t] += item_values[t][config_idx]
+
+    # Plot the net production
+    x_labels = [i for i in range(len(T))]  
+    x = np.arange(len(x_labels))  # Label locations
+    width = 0.7 / num_configs  # Width of the bars
+
+    fig, ax = plt.subplots()
+    colors = plt.get_cmap('tab20', num_configs)  # Change color palette
+
+    for config_idx in range(num_configs):
+        values = net_production[config_idx]
+        ax.bar(x + config_idx * width, values, width, label=f'Escenario {config_idx}', color=colors(config_idx))
+
+    # Add labels, title, and legend
+    ax.set_xlabel('Periodo de Tiempo', fontsize = 16)
+    ax.set_ylabel('Valor en Euros', fontsize = 16)
+    ax.set_title('Inventario Comprometido en cada periodo de Tiempo', fontsize = 18)
+    ax.set_xticks(x + width * (num_configs - 1) / 2)
+    ax.set_xticklabels(x_labels)
+    ax.legend()
+
+    # Add vertical lines to separate time periods
+    for pos in x:
+        ax.axvline(pos + width * (num_configs - 1) / 2 + (x[1]-x[0])/2 , color='grey', linestyle='--')
+
+    # Show the plot
+    plt.show()    
 
 def plotItem(X_results, T, item, titulo):
     X_values = []
@@ -415,9 +512,9 @@ def plot_balance_over_time(D, B, w, c1, c2, x, y, item_indices, customer_indices
     print(revenues[11])
     print(costs[11])
     # Añadir etiquetas y título
-    plt.xlabel('Periodo de Tiempo')
-    plt.ylabel('Valor monetario en Euros')
-    plt.title('Evolución del Balance de Ingresos y Costes')
+    plt.xlabel('Periodo de Tiempo', fontsize = 16)
+    plt.ylabel('Valor monetario en Euros', fontsize = 16)
+    plt.title('Evolución del Balance de Ingresos y Costes', fontsize = 18)
     plt.legend()
 
     # Mostrar el gráfico
@@ -465,10 +562,10 @@ def plot_inventory_average(I, I0, T, NN):
     plt.xticks(range(len(T)))
     
     # Añadir etiquetas y título
-    ax1.set_xlabel('Periodo de Tiempo')
-    ax1.set_ylabel('Inventario Promedio (Ítem 62 excluido)', color='g')
-    ax2.set_ylabel('Inventario Ítem 62 (Rodillo)', color='b')
-    plt.title('Evolución del Inventario Promedio')
+    ax1.set_xlabel('Periodo de Tiempo', fontsize = 16)
+    ax1.set_ylabel('Inventario Promedio (Ítem 62 excluido)', color='g', fontsize = 16)
+    ax2.set_ylabel('Inventario Ítem 62 (Rodillo)', color='b', fontsize = 16)
+    plt.title('Evolución del Inventario Promedio', fontsize = 18)
 
     # Añadir leyendas
     lines_1, labels_1 = ax1.get_legend_handles_labels()
@@ -504,24 +601,33 @@ def plot_cost_comparison(c1, c2, x, y, T, K1, K2, K3):
         production_costs.append(total_production_cost)
         purchase_costs.append(total_purchase_cost)
 
-    # Crear el gráfico de líneas
-    fig, ax = plt.subplots(figsize=(12, 6))
+    # Crear el gráfico de líneas con ejes Y diferentes
+    fig, ax1 = plt.subplots(figsize=(12, 6))
 
-    ax.plot(range(1, len(T)), production_costs, marker='o', linestyle='-', color='b', label='Costes de Producción')
-    ax.plot(range(1, len(T)), purchase_costs, marker='x', linestyle='--', color='g', label='Costes de Compra')
+    ax1.set_xlabel('Periodo de Tiempo', fontsize=16)
+    ax1.set_ylabel('Costes de Producción (Euros)', fontsize=16, color='b')
+    ax1.plot(range(1, len(T)), production_costs, marker='o', linestyle='-', color='b', label='Costes de Producción')
+    ax1.tick_params(axis='y', labelcolor='b')
 
-    # Configurar la cuadrícula en el fondo
-    ax.set_axisbelow(True)
-    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+    ax2 = ax1.twinx()  # Instancia un segundo eje que comparte el mismo eje x
+    ax2.set_ylabel('Costes de Compra (Euros)', fontsize=16, color='g')
+    ax2.plot(range(1, len(T)), purchase_costs, marker='x', linestyle='--', color='g', label='Costes de Compra')
+    ax2.tick_params(axis='y', labelcolor='g')
 
-    # Añadir todas las etiquetas del eje X
+    fig.suptitle('Comparación de Costes de Producción y Compra por Periodo', fontsize=18)
+
+    # Añadir las etiquetas del eje X para todos los períodos
     plt.xticks(range(1, len(T)))
+
+    # Sincronizar las cuadrículas de los dos ejes y establecer la cuadrícula
+    ax1.grid(True, which='both', linestyle='--', linewidth=0.5)
+    ax2.grid(True, which='both', linestyle='--', linewidth=0.5)
+    ax2.set_axisbelow(True)
     
-    # Añadir etiquetas y título
-    plt.xlabel('Periodo de Tiempo')
-    plt.ylabel('Valor monetario en Euros')
-    plt.title('Comparación de Costes de Producción y Compra por Periodo')
-    plt.legend()
+    # Añadir las leyendas para ambos ejes
+    lines_1, labels_1 = ax1.get_legend_handles_labels()
+    lines_2, labels_2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper right')
 
     # Mostrar el gráfico
     plt.show()
@@ -574,7 +680,7 @@ def plot_FabricaCompra_comparison(x, y, T, K1, K2, K3):
 
 def plot_pie_chart_costs(c1, c2, x, y, T, K1, K2, K3):
     """
-    Crea un gráfico circular con el neto de compra y neto de producción.
+    Crea un gráfico circular con los costes totales de compra y de producción.
 
     Args:
         c1 (dict): Costos de producción.
@@ -592,7 +698,7 @@ def plot_pie_chart_costs(c1, c2, x, y, T, K1, K2, K3):
     net_purchase = np.sum([c2[i] * y[i, t] for t in range(1, len(T)) for i in K2 + K3])
 
     # Datos para el gráfico de pastel
-    labels = 'Total de Producción', 'Total de Compra'
+    labels = 'Total\nProducción', 'Total\nCompra'
     sizes = [net_production, net_purchase]
     colors = ['#ff9999', '#66b3ff']
     explode = (0.1, 0)  # Resalta el primer segmento
@@ -606,7 +712,7 @@ def plot_pie_chart_costs(c1, c2, x, y, T, K1, K2, K3):
     # Crear el gráfico de pastel
     fig, ax = plt.subplots(figsize=(8, 8))
     ax.pie(sizes, explode=explode, labels=labels, colors=colors, autopct=autopct_format(sizes),
-           shadow=True, startangle=180, textprops={'fontsize': 18})
+           shadow=True, startangle=90, textprops={'fontsize': 18})
     ax.axis('equal')  # Igualar el eje para asegurar que el gráfico de pastel es circular
 
     # Añadir título
@@ -636,7 +742,7 @@ def plot_pie_chart_invent(x, y, T, K1, K2, K3):
     labels = 'Unidades\nFabricadas', 'Unidades\nCompradas'
     sizes = [net_production, net_purchase]
     colors = ['#ff9999', '#66b3ff']
-    explode = (0.1, 0)  # Resalta el primer segmento
+    explode = (0, 0)  # Resalta el primer segmento
 
     # Función para mostrar tanto el porcentaje como el valor neto
     def autopct_format(values):
@@ -667,6 +773,7 @@ def plot_route_production_comparison(routeProduction, x_values_list, T, K1, K3):
     Args:
         routeProduction (dict): Diccionario donde las claves son MyBOMITEMID y los valores son LINEROUTEID.
         x_values_list (list of dict): Lista de diccionarios donde las claves son MyBOMITEMID y los valores son los valores netos de x.
+        T (list): Lista de períodos de tiempo.
         K1 (list): Lista de ítems en K1.
         K3 (list): Lista de ítems en K3.
     """
@@ -682,7 +789,7 @@ def plot_route_production_comparison(routeProduction, x_values_list, T, K1, K3):
             route_config_values[route][config_idx] += np.sum([x_values[item,t] for t in range(1, len(T))])
 
     # Crear listas para el gráfico de barras
-    routes = list(route_config_values.keys())
+    routes = sorted(list(route_config_values.keys()))
     n_configs = len(x_values_list)
     width = 0.5 / n_configs  # Ancho de las barras
 
@@ -695,17 +802,160 @@ def plot_route_production_comparison(routeProduction, x_values_list, T, K1, K3):
     # Crear el gráfico de barras
     for config_idx in range(n_configs):
         config_values = [route_config_values[route][config_idx] for route in routes]
-        plt.bar(np.arange(len(routes)) + config_idx * width, config_values, width=width, color=cmap(config_idx % cmap.N), align='center', label=f'Configuración {config_idx + 1}')
+        plt.bar(np.arange(len(routes)) + config_idx * width, config_values, width=width, color=cmap(config_idx % cmap.N), align='center'
+                , label=f'Escenario {config_idx}'
+                )
 
     # Etiquetas y título del gráfico
-    plt.xlabel('Rutas (LINEROUTEID)')
-    plt.ylabel('Valor Neto de Produccion')
-    plt.title('Comparación de Valor Neto de produccion por Ruta y Configuración')
+    plt.xlabel('Línea de producción', fontsize = 16)
+    plt.ylabel('Cantidad Total de Produccion', fontsize = 16)
+    plt.title('Comparación de la cantidad total de unidades fabricadas por linea de producción')
+    # plt.title('Cantidad total de unidades fabricadas por linea de producción', fontsize = 18)
     plt.xticks(np.arange(len(routes)) + width * (n_configs - 1) / 2, routes)
     plt.legend()
 
     # Mostrar el gráfico
     plt.show()
+
+def plot_I_compromised(c_std, I, I_0, T, K1, K2, K3):
+    """
+    Grafica el inventario comprometido en cada período.
+
+    Args:
+        c_std (dict): Costos estándar.
+        I_0 (dict): Inventario inicial.
+        I (dict): Inventario a lo largo de los diferentes periodos de tiempo.
+        T (list): Lista de períodos de tiempo.
+        K1 (list): Lista de ítems para c1.
+        K2 (list): Lista de ítems para c2.
+        K3 (list): Lista de ítems para ambos c1 y c2.
+    """
+
+    # Inicializar listas para los costos totales por periodo
+    Icompromised = []
+    Icompromised.append(np.sum([c_std[i] * I_0[i] for i in K1+K2+K3]))
+    # Calcular los costos para cada período
+    for t in range(1, len(T)):
+        total_production_cost = np.sum([c_std[i] * I[i, t] for i in K1+K2+K3])
+        Icompromised.append(total_production_cost)
+
+    # Crear el gráfico de líneas
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    ax.plot(range(len(T)), Icompromised, marker='o', linestyle='--', color='green', label='Inventario comprometido')
+
+    # Configurar la cuadrícula en el fondo
+    ax.set_axisbelow(True)
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+
+    # Añadir todas las etiquetas del eje X
+    plt.xticks(range(1, len(T)))
+    
+    # Añadir etiquetas y título
+    plt.xlabel('Periodo de Tiempo', fontsize = 16)
+    plt.ylabel('Valor en Euros', fontsize = 16)
+    plt.title('Inventario comprometido por Periodo', fontsize = 18)
+    plt.legend()
+
+    # Mostrar el gráfico
+    plt.show()
+    
+def plot_I_compromised_MultipleEnv(c_std, I_list, T, K1, K2, K3):
+    """
+    Grafica el inventario comprometido en cada período para cada escenario en I_list.
+
+    Args:
+        c_std (dict): Costos estándar.
+        I_list (list of dicts): Lista donde cada elemento es un diccionario de inventarios para diferentes escenarios.
+        T (list): Lista de períodos de tiempo.
+        K1 (list): Lista de ítems para c1.
+        K2 (list): Lista de ítems para c2.
+        K3 (list): Lista de ítems para ambos c1 y c2.
+    """
+
+    # Inicializar listas para los costos totales por período para cada escenario
+    Icompromised_list = []
+
+    # Iterar sobre cada escenario de inventario en I_list
+    for I in I_list:
+        Icompromised = []
+        # Calcular los costos para cada período
+        for t in range(len(T)):
+            total_production_cost = np.sum([c_std[i] * I[i, t] for i in K1 + K2 + K3])
+            Icompromised.append(total_production_cost)
+
+        # Agregar la lista de costos comprometidos para este escenario a la lista principal
+        Icompromised_list.append(Icompromised)
+
+    # Crear el gráfico de líneas
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Plotear los datos para cada escenario
+    for idx, Icomp in enumerate(Icompromised_list):
+        ax.plot(range(len(T)), Icomp, marker='o', linestyle='--', label=f'Escenario {idx+1}')
+
+    # Configurar la cuadrícula en el fondo
+    ax.set_axisbelow(True)
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+
+    # Añadir todas las etiquetas del eje X
+    plt.xticks(range(len(T)))
+
+    # Añadir etiquetas y título
+    plt.xlabel('Periodo de Tiempo', fontsize=16)
+    plt.ylabel('Valor en Euros', fontsize=16)
+    plt.title('Inventario comprometido por Periodo', fontsize=18)
+    plt.legend()
+
+    # Mostrar el gráfico
+    plt.show()
+
+def plot_Opt_c2Mult(c2_mult, Optimo, Xtotal):
+    """Genera un gráfico del optimo de la funcion objetivo y la cantidad total de fabrica frente al multiplicador de c2.
+
+    Args:
+        c2_mult (list): Lista de multiplicadores de c2.
+        Óptimo (list): Lista de valores óptimos de la función objetivo (izquierdo).
+        Xtotal (list): Lista de cantidades totales de fabrica (derecho).
+
+    Raises:
+        ValueError: Si las listas c2_mult, Optimo y Xtotal no tienen la misma longitud.
+    """
+    # Verificar que todas las listas tengan el mismo tamaño
+    if len(c2_mult) != len(Optimo) or len(c2_mult) != len(Xtotal):
+        raise ValueError("Las listas c2_mult, Optimo y Xtotal deben tener la misma longitud")
+
+    # Crear la figura y el eje principal
+    fig, ax1 = plt.subplots()
+
+    # Graficar Optimo en el eje Y izquierdo
+    ax1.set_xlabel('Factor de reducción', fontsize = 16)
+    ax1.set_ylabel('Valor Óptimo', color='tab:blue', fontsize = 16)
+    ax1.plot(c2_mult, Optimo, linestyle='-',color='tab:blue', label='Valor Óptimo')
+    ax1.tick_params(axis='y', labelcolor='tab:blue')
+    
+    ax1.set_xlim(ax1.get_xlim()[::-1])
+
+    # Crear un segundo eje Y para graficar Xtotal
+    ax2 = ax1.twinx()
+    ax2.set_ylabel('Unidades totales fabricadas', color='tab:red', fontsize = 16)
+    ax2.plot(c2_mult, Xtotal, linestyle='-', color='tab:red', label='Fabricación total')
+    ax2.tick_params(axis='y', labelcolor='tab:red')
+
+    lines_1, labels_1 = ax1.get_legend_handles_labels()
+    lines_2, labels_2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='center left')
+    
+    ax1.xaxis.set_major_locator(plt.MaxNLocator(nbins=10))
+    ax1.yaxis.set_major_locator(plt.MaxNLocator(nbins=13))
+    ax2.yaxis.set_major_locator(plt.MaxNLocator(nbins=13))
+    ax1.tick_params(axis='both', which='major', labelsize=12)
+    ax2.tick_params(axis='both', which='major', labelsize=10)
+
+    # Mostrar el gráfico resultante
+    plt.title('Evolución del óptimo de la función objetivo y la producción total', fontsize = 18)
+    plt.show()
+
 
 if __name__ == "__main__":
     results, I_results, X_results, Y_results, W_results = load_results()
@@ -718,8 +968,11 @@ if __name__ == "__main__":
     
 
     # plotNet(X_results, K1+K3, T)
-    # plotNet(Y_results,list(set(K2 + K3) - {62}), T)
-    # plotNet(I_results, list(set(K1 + K2 + K3) - {62}), T)
+    # plotNet(Y_results,list(set(K2 + K3)), T)
+    # plotNet(I_results, list(set(K1 + K2 + K3)), T)
+    # plotNet_Costes(X_results, list(set(K1 + K3)), T, c1)
+    # plotNet_Costes(Y_results, list(set(K2 + K3)), T, c2)
+    # plotNetI_comprometido(I_results, list(set(K1 + K2 + K3)), T, c_std)
     # plotItem(Y_results, T, 62, "Unidades compradas por periodo del ítem 62")
     # plot_inventory(I_0, 0, T)
     # plot_inventory(I_results[0], 12, T)
@@ -729,7 +982,10 @@ if __name__ == "__main__":
     # plot_inventory_average(I_results[0], I_0, T, NN)
     # plot_cost_comparison(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
     # plot_FabricaCompra_comparison(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
-    # plot_pie_chart_costs(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
-    # plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, K2, K3)
+    # plot_pie_chart_costs(c1, c2, X_results[0], Y_results[0], T, [], [], K3)
+    # plot_pie_chart_invent(X_results[5], Y_results[5], T, [], [], K3)
     # plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
-    plot_route_production_comparison(routeProduction, X_results, T, K1, K3)
+    # plot_route_production_comparison(routeProduction, X_results, T, K1, K3)
+    # plot_I_compromised(c_std, I_results[0], I_0, T, K1, K2, K3)
+    # plot_I_compromised_MultipleEnv(c_std, I_results, T, K1, K2, K3)
+    plot_Opt_c2Mult(results['c2_multiplier'], results['ObjVal'], results['uds_fabricadas'])

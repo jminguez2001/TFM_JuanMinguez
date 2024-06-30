@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def calculaAnalyticParams(x, y, w, c1, c2, c_std, T, LEVEL0, K1, K2, K3, R, D, B, item_indices, customer_indices, I, I_0):
+def calculaAnalyticParams(x, y, w, c1, c2, c_std, T, LEVEL0, K1, K2, K3, R, D, B, item_indices, customer_indices, I):
 
     
     # Calcular costes
@@ -13,7 +13,7 @@ def calculaAnalyticParams(x, y, w, c1, c2, c_std, T, LEVEL0, K1, K2, K3, R, D, B
     uds_fabricadas = np.sum([x[i, t] for t in range(1, len(T)) for i in K1 + K3])
     
     # Inventario comprometido inicial
-    I0_comprometido = np.sum([c_std[i] * I_0[i] for i in K1 + K2 + K3]) 
+    I0_comprometido = np.sum([c_std[i] * I[i, 0] for i in K1 + K2 + K3]) 
     # Inventario comprometido final
     If_comprometido = np.sum([c_std[i] * I[i, len(T)-1] for i in K1 + K2 + K3])
     
