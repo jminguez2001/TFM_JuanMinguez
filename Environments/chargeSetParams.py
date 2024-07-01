@@ -45,7 +45,8 @@ def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, 
     R_len = len(R)
 
     # Periodos de tiempo en el horizonte temporal
-    date_range = pd.date_range(start= dt.datetime.now().strftime("%Y-%m-01"), periods= Tenv, freq='MS')
+    date_range = pd.date_range(start= dt.datetime(2024, 6, 1).strftime("%Y-%m-01"), periods= Tenv, freq='MS') # The month of start must be June 2024 because it is when the 
+                                                                                                              # orders where created
     T = date_range.tolist() # De hoy a 12 meses
 
     # Demanda y precios de venta

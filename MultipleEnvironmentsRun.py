@@ -9,14 +9,15 @@ if __name__ == '__main__':
 
     # Parametros para las diferentes configuraciones
     modo = "default"
-    A_Stock = [True] # Si se dispone de stock a tiempo 0
+    A_Stock = [True, False] # Si se dispone de stock a tiempo 0
     MOQs_AsParms = [True] # Si se toman como parametros la MOQ1 o no
     leadtime_purchase = [True] # Si se consideran leadtimes de compra
     leadtime_routes = [False] # Si se consideran leadtimes de fabrica
     c_act_Multiplier = [1] # Multiplicador de los costes de activacion
     lt_multipliers = [1] # Multiplicador de los leadtimes de compra
     ltf_multipliers = [1] # Multiplicador de los leadtimes de fabricacion
-    MOQ1_multipliers = [1] # Multiplicador de las MOQ1
+    MOQ1_multipliers = [1, 0.75, 0.5, 1/3, 0] # Multiplicador de las MOQ1
+    MOQ2_multipliers = [1, 0.75, 0.5, 1/3, 0] # Multiplicador de las MOQ1
     c2_multipliers = [1] # Multiplicador de los costes de compra
     Q_invent_multipliers = [1] # Multiplicador de la capacidad de inventario
     c1_fc2 = [False] # Si se consideran los costes de fabricacion de los item mixtos como funcion de los de compra
@@ -32,7 +33,7 @@ if __name__ == '__main__':
                                     'Param_I_0', 'Costes_invent', 'Invent_Capacity', 'Fabrica_Capacity', 
                                     'minimum_delivery_rate', 'c1_fc2',
                                     'c_act_Multiplier', 'lt_Multiplier', 'ltf_Multiplier',
-                                    'MOQ1_Multiplier', 'c1_fc2_Multiplier',
+                                    'MOQ1_Multiplier', 'MOQ2_Multiplier', 'c1_fc2_Multiplier',
                                     'Q_invent_multiplier', 'c2_multiplier',
                                     'margen', "I0_comprometido", "If_comprometido", 
                                     "net_purchase", "uds_fabricadas",
@@ -56,44 +57,46 @@ if __name__ == '__main__':
         lt_multipliers_aux = lt_multipliers if lp else [0]
         ltf_multipliers_aux = ltf_multipliers if lr else [0]
         MOQ1_multipliers_aux = MOQ1_multipliers if m else [1]
+        MOQ2_multipliers_aux = MOQ2_multipliers if m else [1]
         c1_fc2_multiplier_aux = c1_fc2_multiplier if c1Asc2 else [1]
         Q_invent_multipliers_aux = Q_invent_multipliers if IQ else [1]
         if (not (not i0_p and not IQ)) and (not (i0_p and IQ)): # No tiene sentido considerar casos en los que I_0 sea una variable y no haya limite en la capacidad de inventario
                                                           # Considerar capacidades de inventario e inventario inicial como paramtero puede dar lugar a modelos sin solucion dependiendo del valor de las capacidades
-            for cMult, ltm, ltfm, MOQ1m, c1Asc2m, Qim in itertools.product(c_act_Multiplier_aux, lt_multipliers_aux, 
-                                                            ltf_multipliers_aux, MOQ1_multipliers_aux,
+            for cMult, ltm, ltfm, MOQ1m, MOQ2m, c1Asc2m, Qim in itertools.product(c_act_Multiplier_aux, lt_multipliers_aux, 
+                                                            ltf_multipliers_aux, MOQ1_multipliers_aux, MOQ2_multipliers_aux,
                                                             c1_fc2_multiplier_aux, Q_invent_multipliers_aux):
-                optSol, TCPU, solI, solX, solY, solW, margen, I0_comprometido, If_comprometido, net_purchase, uds_fabricadas, PerCent_udsSatisfechas, PerCent_PedidosSatisfechos = Test(
-                mode=modo, Available_Stock=s, Param_MOQ=m,
-                leadtime_purchase=lp, leadtime_routes=lr, Param_I_0=i0_p,
-                Costes_invent=ci, Invent_Capacity=IQ, Fabrica_Capacity=FQ,
-                c_act_Multiplier=cMult, lt_Multiplier=ltm, ltf_Multiplier=ltfm, MOQ1_multipliter = MOQ1m,
-                c1_fc2 = c1Asc2, c1_fc2_multiplier = c1Asc2m,
-                Q_invent_Multiplier=Qim, c2_Multiplier=c2m,
-                minimum_delivery_rate = mdr,
-                index = contador)
+                if (MOQ1m>=1 or MOQ2m >= 1) and (not (not s and MOQ2m<1)):
+                    optSol, TCPU, solI, solX, solY, solW, margen, I0_comprometido, If_comprometido, net_purchase, uds_fabricadas, PerCent_udsSatisfechas, PerCent_PedidosSatisfechos = Test(
+                    mode=modo, Available_Stock=s, Param_MOQ=m,
+                    leadtime_purchase=lp, leadtime_routes=lr, Param_I_0=i0_p,
+                    Costes_invent=ci, Invent_Capacity=IQ, Fabrica_Capacity=FQ,
+                    c_act_Multiplier=cMult, lt_Multiplier=ltm, ltf_Multiplier=ltfm, MOQ1_multipliter = MOQ1m, MOQ2_multipliter = MOQ2m,
+                    c1_fc2 = c1Asc2, c1_fc2_multiplier = c1Asc2m,
+                    Q_invent_Multiplier=Qim, c2_Multiplier=c2m,
+                    minimum_delivery_rate = mdr,
+                    index = contador)
 
-                
-                
-                new_row = {
-                    'Environment': modo, 'Available_Stock': s, 'Param_MOQ': m, 'leadtime_purchase': lp, 'leadtime_routes': lr, 
-                    'Param_I_0': i0_p, 'Costes_invent': ci, 'Invent_Capacity': IQ, 'Fabrica_Capacity': FQ, 
-                    'minimum_delivery_rate': mdr, 'c1_fc2' : c1Asc2,
-                    'c_act_Multiplier': cMult, 'lt_Multiplier': ltm, 'ltf_Multiplier': ltfm,
-                    'MOQ1_Multiplier':MOQ1m, 'c1_fc2_Multiplier':c1Asc2m,
-                    'Q_invent_multiplier': Qim, 'c2_multiplier': c2m,
-                    'margen': margen, "I0_comprometido": I0_comprometido, "If_comprometido": If_comprometido, 
-                    "net_purchase": net_purchase, "uds_fabricadas": uds_fabricadas,
-                    'PerCent_udsSatisfechas': PerCent_udsSatisfechas, 'PerCent_PedidosSatisfechos': PerCent_PedidosSatisfechos, 
-                    'ObjVal': optSol, 'T_CPU': TCPU
-                }
+                    
+                    
+                    new_row = {
+                        'Environment': modo, 'Available_Stock': s, 'Param_MOQ': m, 'leadtime_purchase': lp, 'leadtime_routes': lr, 
+                        'Param_I_0': i0_p, 'Costes_invent': ci, 'Invent_Capacity': IQ, 'Fabrica_Capacity': FQ, 
+                        'minimum_delivery_rate': mdr, 'c1_fc2' : c1Asc2,
+                        'c_act_Multiplier': cMult, 'lt_Multiplier': ltm, 'ltf_Multiplier': ltfm,
+                        'MOQ1_Multiplier':MOQ1m, 'MOQ2_Multiplier':MOQ2m, 'c1_fc2_Multiplier':c1Asc2m,
+                        'Q_invent_multiplier': Qim, 'c2_multiplier': c2m,
+                        'margen': margen, "I0_comprometido": I0_comprometido, "If_comprometido": If_comprometido, 
+                        "net_purchase": net_purchase, "uds_fabricadas": uds_fabricadas,
+                        'PerCent_udsSatisfechas': PerCent_udsSatisfechas, 'PerCent_PedidosSatisfechos': PerCent_PedidosSatisfechos, 
+                        'ObjVal': optSol, 'T_CPU': TCPU
+                    }
 
-                results = results._append(new_row, ignore_index=True)
-                I_results.append(solI)
-                X_results.append(solX)
-                Y_results.append(solY)
-                W_results.append(solW)
-                contador += 1
+                    results = results._append(new_row, ignore_index=True)
+                    I_results.append(solI)
+                    X_results.append(solX)
+                    Y_results.append(solY)
+                    W_results.append(solW)
+                    contador += 1
 
                                 
     

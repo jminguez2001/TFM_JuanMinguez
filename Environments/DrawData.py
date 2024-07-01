@@ -60,21 +60,21 @@ def plotNet(X_results, sets, T):
                 net_production[config_idx, t] += item_values[t][config_idx]
 
     # Plot the net production
-    x_labels = [date.strftime('%d-%m-%y') for date in T[1:]]  
+    x_labels = [i for i in range(1, len(T))]  
     x = np.arange(len(x_labels))  # Label locations
-    width = 0.5 / num_configs  # Width of the bars
+    width = 0.7 / num_configs  # Width of the bars
 
     fig, ax = plt.subplots()
     colors = plt.get_cmap('tab20', num_configs)  # Change color palette
 
     for config_idx in range(num_configs):
         values = net_production[config_idx]
-        ax.bar(x + config_idx * width, values, width, label=f'Escenario {config_idx + 1}', color=colors(config_idx))
+        ax.bar(x + config_idx * width, values, width, label=f'Escenario {config_idx}', color=colors(config_idx))
 
     # Add labels, title, and legend
-    ax.set_xlabel('Time Period')
-    ax.set_ylabel('Net value')
-    ax.set_title('Net value for Each Configuration in Each Time Period')
+    ax.set_xlabel('Periodo', fontsize = 16)
+    ax.set_ylabel('Unidades', fontsize = 16)
+    ax.set_title('Unidades fabricadas por periodo', fontsize = 18)
     ax.set_xticks(x + width * (num_configs - 1) / 2)
     ax.set_xticklabels(x_labels)
     ax.legend()
@@ -817,6 +817,76 @@ def plot_route_production_comparison(routeProduction, x_values_list, T, K1, K3):
     # Mostrar el gráfico
     plt.show()
 
+def plot_route_production_comparison_perT(routeProduction, x_values_list, T, K1, K3):
+    """
+    Genera un gráfico de barras para comparar el valor neto de x por ruta para cada configuración,
+    considerando solo los ítems en K1 y K3.
+
+    Args:
+        routeProduction (dict): Diccionario donde las claves son MyBOMITEMID y los valores son LINEROUTEID.
+        x_values_list (list of dict): Lista de diccionarios donde las claves son MyBOMITEMID y los valores son los valores netos de x.
+        T (list): Lista de períodos de tiempo.
+        K1 (list): Lista de ítems en K1.
+        K3 (list): Lista de ítems en K3.
+    """
+    # Unir K1 y K3
+    K1_K3 = set(K1 + K3)
+
+    # Inicializar un diccionario para almacenar los valores de x por ruta y por configuración y por tiempo
+    route_config_values = {route: np.zeros((len(x_values_list), len(T)-1)) for route in set(routeProduction.values())}
+
+    # Sumar los valores de x en todas las configuraciones y periodos de tiempo
+    for config_idx, x_values in enumerate(x_values_list):
+        for item, route in routeProduction.items():
+            if item in K1_K3:
+                for t in range(1, len(T)):
+                    route_config_values[route][config_idx, t-1] += x_values[item, t]
+
+    # Crear listas para el gráfico de barras
+    routes = sorted(list(route_config_values.keys()))
+    n_configs = len(x_values_list)
+    n_periods = len(T) - 1
+    width = 0.05  # Ancho de las barras para cada configuración
+
+    # Configurar el tamaño de la figura
+    plt.figure(figsize=(12, 8))
+
+    # Obtener una paleta de colores
+    cmap = plt.get_cmap('tab20')
+
+    # Crear el gráfico de barras apiladas por periodo de tiempo
+    for config_idx in range(n_configs):
+        bottom = np.zeros(len(routes))
+        for t in range(n_periods):
+            config_values = [route_config_values[route][config_idx, t] for route in routes]
+            bars = plt.bar(np.arange(len(routes)) + config_idx * (width + 0.02), config_values, width=width, color=cmap(t % cmap.N), bottom=bottom, align='center')
+            bottom += config_values
+        # Etiquetas de configuración arriba de cada barra
+        for i, bar in enumerate(bars):
+            height = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width() / 2, bottom[i], f'{config_idx}', ha='center', va='bottom')
+
+    # Cambiar el estilo de la rejilla
+    # plt.grid(True, linestyle='--')
+
+    # Etiquetas y título del gráfico
+    plt.xlabel('Línea de producción', fontsize=16)
+    plt.ylabel('Cantidad Total de Producción', fontsize=16)
+    plt.title('Comparación de la cantidad total de unidades fabricadas por línea de producción', fontsize=18)
+    
+    # Asegurar que las xticks estén en el centro del grupo de barras
+    plt.xticks(np.arange(len(routes)) + width * (n_configs - 1), routes)
+
+    # Aumentar el número de marcas en el eje y
+    plt.gca().yaxis.set_major_locator(plt.MaxNLocator(nbins=20))
+
+    # Crear leyenda para los periodos de tiempo
+    handles = [plt.Rectangle((0,0),1,1, color=cmap(t % cmap.N)) for t in range(n_periods)]
+    labels = [f'Periodo {t+1}' for t in range(n_periods)]
+    plt.legend(handles, labels, title="Periodos de Tiempo", loc='upper left')
+
+    # Mostrar el gráfico
+    plt.show()
 def plot_I_compromised(c_std, I, I_0, T, K1, K2, K3):
     """
     Grafica el inventario comprometido en cada período.
@@ -959,7 +1029,7 @@ def plot_Opt_c2Mult(c2_mult, Optimo, Xtotal):
 
 if __name__ == "__main__":
     results, I_results, X_results, Y_results, W_results = load_results()
-    BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, StdCost, Tenv = chargeEnv(mode = results["Environment"].values[0])
+    BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, StdCost, Tenv = chargeEnv(mode = "default")
     NN, K1, K2, K3, LEVEL0, N, N_reverse, layers, R, T, D, B, item_indices, customer_indices, c_act, c1, c2, c_std, c_invent, Q_invent, Q_fabrica, MOQ1, MOQ2, lt, ltf, I_0, alpha = charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, StdCost, Tenv)
     routeProduction = {
     **{key: value for key, value in zip(RouteItems["MyBOMITEMID"], RouteItems["LINEROUTEID"])},
@@ -967,13 +1037,13 @@ if __name__ == "__main__":
     }    # Diccionario de rutas-item
     
 
-    # plotNet(X_results, K1+K3, T)
-    # plotNet(Y_results,list(set(K2 + K3)), T)
-    # plotNet(I_results, list(set(K1 + K2 + K3)), T)
+    # plotNet([X_results[0]] + X_results[5:], K1+K3, T)
+    # plotNet(Y_results[0:4],list(set(K2 + K3)-{62}), T)
+    # plotNet(I_results, list(set(K1 + K3)), T)
     # plotNet_Costes(X_results, list(set(K1 + K3)), T, c1)
     # plotNet_Costes(Y_results, list(set(K2 + K3)), T, c2)
-    # plotNetI_comprometido(I_results, list(set(K1 + K2 + K3)), T, c_std)
-    # plotItem(Y_results, T, 62, "Unidades compradas por periodo del ítem 62")
+    plotNetI_comprometido([I_results[0]] + I_results[5:], list(set(K1 + K2 + K3)), T, c_std)
+    # plotItem(Y_results[0:4], T, 62, "Unidades compradas por periodo del ítem 62")
     # plot_inventory(I_0, 0, T)
     # plot_inventory(I_results[0], 12, T)
     # plot_demand_satisfaction(D, W_results[0], T, LEVEL0, R, item_indices, customer_indices)
@@ -985,7 +1055,8 @@ if __name__ == "__main__":
     # plot_pie_chart_costs(c1, c2, X_results[0], Y_results[0], T, [], [], K3)
     # plot_pie_chart_invent(X_results[5], Y_results[5], T, [], [], K3)
     # plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
-    # plot_route_production_comparison(routeProduction, X_results, T, K1, K3)
+    # plot_route_production_comparison(routeProduction, [X_results[0]] + X_results[5:], T, K1, K3)
+    # plot_route_production_comparison_perT(routeProduction, [X_results[0]] + X_results[5:], T, K1, K3)
     # plot_I_compromised(c_std, I_results[0], I_0, T, K1, K2, K3)
     # plot_I_compromised_MultipleEnv(c_std, I_results, T, K1, K2, K3)
-    plot_Opt_c2Mult(results['c2_multiplier'], results['ObjVal'], results['uds_fabricadas'])
+    # plot_Opt_c2Mult(results['c2_multiplier'], results['ObjVal'], results['uds_fabricadas'])

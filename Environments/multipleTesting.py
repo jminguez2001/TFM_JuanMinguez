@@ -13,7 +13,7 @@ def Test(mode = "default", Available_Stock = True, Param_MOQ = True,
          leadtime_purchase = True, leadtime_routes = False,
          Param_I_0 = True, Costes_invent = False, Invent_Capacity = False
          , Fabrica_Capacity = False 
-         , c_act_Multiplier = 1, lt_Multiplier = 1, ltf_Multiplier = 1, MOQ1_multipliter = 1
+         , c_act_Multiplier = 1, lt_Multiplier = 1, ltf_Multiplier = 1, MOQ1_multipliter = 1, MOQ2_multipliter = 1
          , c1_fc2 = False, c1_fc2_multiplier = 1
          , Q_invent_Multiplier = 1, c2_Multiplier = 1
          , minimum_delivery_rate = 0,
@@ -85,6 +85,8 @@ def Test(mode = "default", Available_Stock = True, Param_MOQ = True,
     
     # Multiplicador de las MOQ1
     MOQ1  = {key: max(int(value * MOQ1_multipliter), 1) if value != 1 else value for key, value in MOQ1.items()}
+    # Multiplicador de las MOQ1
+    MOQ2  = {key: max(int(value * MOQ2_multipliter), 1) if value != 1 else value for key, value in MOQ2.items()}
     
     # c1(c2)
     if c1_fc2:
