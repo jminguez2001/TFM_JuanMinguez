@@ -8,7 +8,7 @@ A continuación se muestra un resumen del contenido del repositorio:
 - El archivo **KeepDataFrames.py** para tomar las tablas finales desde la base de datos y guardarlas como dataframes en archivos .pkl.
 - El archivo **AnalyzeBOMs.py** permite leer las BOMs, estudiar su conectividad y dibujar los grafos asociados.
 
-## Carpetas 
+## Carpetas Auxiliares
 * **BOM_graph**: contiene los archivos .py con las funciones para el estudio y dibujo como grafo de las BOM.
 * **DB_conexion**: contiene el archivo .py con la definicion de clase para los objetos utilizados para conectarse a la base de datos,
                   asi como las funciones para operar sobre la misma.
