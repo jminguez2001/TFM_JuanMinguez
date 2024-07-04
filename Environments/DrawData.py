@@ -122,7 +122,7 @@ def plotNet_Costes(X_results, sets, T, c):
     # Add labels, title, and legend
     ax.set_xlabel('Periodo de Tiempo', fontsize = 16)
     ax.set_ylabel('Valor en Euros', fontsize = 16)
-    ax.set_title('Inversión en cada periodo de tiempo', fontsize = 18)
+    # ax.set_title('Inversión en cada periodo de tiempo', fontsize = 18)
     ax.set_xticks(x + width * (num_configs - 1) / 2)
     ax.set_xticklabels(x_labels)
     ax.legend()
@@ -142,7 +142,7 @@ def plotNetI_comprometido(X_results, sets, T, c_std):
         for t in range(len(T)):
             x = []
             for j in range(len(X_results)):
-                x.append(X_results[j][i,t]*c_std[i])
+                x.append(X_results[j][i,t]*c_std[i]/1e6)
             t_values.append(x)   
         X_values.append(t_values)
 
@@ -170,8 +170,8 @@ def plotNetI_comprometido(X_results, sets, T, c_std):
 
     # Add labels, title, and legend
     ax.set_xlabel('Periodo de Tiempo', fontsize = 16)
-    ax.set_ylabel('Valor en Euros', fontsize = 16)
-    ax.set_title('Inventario Comprometido en cada periodo de Tiempo', fontsize = 18)
+    ax.set_ylabel('Valor en millones de Euros', fontsize = 16)
+    # ax.set_title('Inventario Comprometido en cada periodo de Tiempo', fontsize = 18)
     ax.set_xticks(x + width * (num_configs - 1) / 2)
     ax.set_xticklabels(x_labels)
     ax.legend()
@@ -226,18 +226,18 @@ def plotItem(X_results, T, item, titulo):
     
 def plot_inventory(I, time_period, T):
     """
-    Genera un gráfico de barras que muestra el inventario para cada ítem en un período de tiempo dado.
+    Genera un gráfico de barras que muestra el inventario para cada ítem en un periodo de tiempo dado.
 
     Args:
-        I (dict): Diccionario con inventarios, donde la clave es una tupla (i, t) que representa el ítem y el período de tiempo.
+        I (dict): Diccionario con inventarios, donde la clave es una tupla (i, t) que representa el ítem y el periodo de tiempo.
         time_period (int): El periodo de tiempo para el cual se desea visualizar el inventario.
         T (list): Lista de periodos de tiempo.
 
     Returns:
-        None: Muestra un gráfico de barras donde el eje X representa los ítems y el eje Y representa el inventario para el período de tiempo dado.
+        None: Muestra un gráfico de barras donde el eje X representa los ítems y el eje Y representa el inventario para el periodo de tiempo dado.
     """
     if time_period!= 0:
-        # Filtra el inventario para el período de tiempo dado
+        # Filtra el inventario para el periodo de tiempo dado
         inventory_for_period = {i: inventory for (i, t), inventory in I.items() if t == time_period}
     else:
         inventory_for_period = {i: inventory for i, inventory in I.items()}
@@ -257,7 +257,7 @@ def plot_inventory(I, time_period, T):
     # Configuración del primer eje
     ax1.set_xlabel("Ítem")
     ax1.set_ylabel("Inventario")
-    ax1.set_title(f"Inventario por ítem en el período de tiempo {T[time_period].strftime('%d-%m-%y')}")
+    ax1.set_title(f"Inventario por ítem en el periodo de tiempo {T[time_period].strftime('%d-%m-%y')}")
 
     # Crear un segundo eje para el ítem 62
     ax2 = ax1.twinx()
@@ -274,6 +274,65 @@ def plot_inventory(I, time_period, T):
 
     # Muestra la gráfica
     plt.show()
+
+def plot_inventory_vs_cost(I, time_period, T, c_std):
+    """
+    Genera un gráfico de líneas que muestra el inventario para cada ítem en un periodo de tiempo dado, junto con el coste comprometido en un gráfico de barras.
+
+    Args:
+        I (dict): Diccionario con inventarios, donde la clave es una tupla (i, t) que representa el ítem y el periodo de tiempo.
+        time_period (int): El periodo de tiempo para el cual se desea visualizar el inventario.
+        T (list): Lista de periodos de tiempo.
+        c_std (dict): Costes estándar por ítem.
+
+    Returns:
+        None: Muestra un gráfico de líneas para el inventario y un gráfico de barras para el coste comprometido.
+    """
+    # Filtra el inventario y el coste para el periodo de tiempo dado
+    if time_period != 0:
+        inventory_for_period = {i: inventory for (i, t), inventory in I.items() if t == time_period}
+        inventory_cost_for_period = {i: inventory * c_std[i] for (i, t), inventory in I.items() if t == time_period}
+    else:
+        inventory_for_period = {i: inventory for i, inventory in I.items()}
+        inventory_cost_for_period = {i: inventory * c_std[i] for i, inventory in I.items()}
+
+    items = list(inventory_for_period.keys())
+    inventory_values = list(inventory_for_period.values())
+    cost_values = list(inventory_cost_for_period.values())
+
+    x = np.arange(len(items))  # Posiciones en el eje X
+
+    # Crea la gráfica
+    fig, ax1 = plt.subplots(figsize=(10, 6))
+
+    # Grafica el inventario como barras en el eje principal
+    ax1.bar(x, inventory_values, color='lightblue', label='Inventario')
+
+    # Configuración del primer eje
+    ax1.set_xlabel("Ítem", fontsize = 16)
+    ax1.set_ylabel("Inventario", fontsize = 16)
+    ax1.tick_params(axis='y', size = 12)
+    # ax1.set_title("Inventario e Inventario comprometido por ítem")
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(items)
+
+    # Ajustar los xticks para que aparezcan cada 5 ítems
+    ax1.set_xticks(np.arange(0, len(items), 5))
+
+    # Crear un segundo eje para el coste del inventario
+    ax2 = ax1.twinx()
+    ax2.plot(x, cost_values, marker='o', linestyle='--', color='red', alpha=0.6, label='Capital comprometido')
+    ax2.set_ylabel('Euros', color='red', fontsize = 16)
+    ax2.tick_params(axis='y', labelcolor='red', size = 12)
+    ax2.set_ylim(bottom=0)
+
+    # Agregar leyendas
+    ax1.legend(loc='upper left')
+    ax2.legend(loc='upper right')
+
+    # Muestra la gráfica
+    plt.show()
+
 
 def plot_demand_satisfaction(D, w, T, LEVEL0, R, item_indices, customer_indices):
     """
@@ -421,9 +480,9 @@ def plot_demand_by_period(D, w, T, LEVEL0, R, item_indices, customer_indices, ad
     ax.set_ylim(0, max_height * 1.1)
 
     # Añadir etiquetas y título
-    ax.set_xlabel('Ítems a nivel 0')
-    ax.set_ylabel('Unidades')
-    ax.set_title('Demanda por Ítem y Periodo de Tiempo')
+    ax.set_xlabel('Ítems a nivel 0', fontsize = 16)
+    ax.set_ylabel('Unidades', fontsize = 16)
+    # ax.set_title('Demanda por Ítem y Periodo de Tiempo')
     ax.set_xticks(x + (separation if add_second_bar else 0) / 2)
     ax.set_xticklabels([f'{i}' for i in LEVEL0])
     ax.legend()
@@ -437,7 +496,7 @@ def plot_demand_by_period(D, w, T, LEVEL0, R, item_indices, customer_indices, ad
 
 def plot_balance_over_time(D, B, w, c1, c2, x, y, item_indices, customer_indices, LEVEL0, R, K1, K2, K3, T):
     """
-    Calcula y grafica el balance, los ingresos (beneficios), los costos y los beneficios máximos posibles para cada período de tiempo.
+    Calcula y grafica el balance, los ingresos (beneficios), los costos y los beneficios máximos posibles para cada periodo de tiempo.
 
     Args:
         D (list of numpy arrays): Matrices de demanda.
@@ -454,7 +513,7 @@ def plot_balance_over_time(D, B, w, c1, c2, x, y, item_indices, customer_indices
         K1 (list): Lista de ítems para c1.
         K2 (list): Lista de ítems para c2.
         K3 (list): Lista de ítems para ambos c1 y c2.
-        T (list): Lista de períodos de tiempo.
+        T (list): Lista de periodos de tiempo.
     """
 
     # Inicializar listas para guardar los balances, ingresos, costos y beneficios máximos
@@ -464,9 +523,9 @@ def plot_balance_over_time(D, B, w, c1, c2, x, y, item_indices, customer_indices
     max_revenues = []
     
     # Inicializar las listas para el primer periodo
-    revenue = np.sum([D[1][item_indices[i], customer_indices[r]] * B[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R for i in LEVEL0])
-    cost_x = np.sum([float(c1[i]) * x[i, 1] for i in K1 + K3])
-    cost_y = np.sum([float(c2[i]) * y[i, 1] for i in K2 + K3])
+    revenue = np.sum([D[1][item_indices[i], customer_indices[r]] * B[1][item_indices[i], customer_indices[r]] * w[i, r, 1] for r in R for i in LEVEL0])/1e6
+    cost_x = np.sum([float(c1[i]) * x[i, 1] for i in K1 + K3])/1e6
+    cost_y = np.sum([float(c2[i]) * y[i, 1] for i in K2 + K3])/1e6
     cost = cost_x + cost_y
     balance = revenue - cost
     max_revenue = np.sum([D[1][item_indices[i], customer_indices[r]] * B[1][item_indices[i], customer_indices[r]] for r in R for i in LEVEL0])
@@ -477,11 +536,11 @@ def plot_balance_over_time(D, B, w, c1, c2, x, y, item_indices, customer_indices
     max_revenues.append(max_revenue)
 
 
-    # Calcular el balance, los ingresos, los costos y los beneficios máximos para cada período
+    # Calcular el balance, los ingresos, los costos y los beneficios máximos para cada periodo
     for t in range(2, len(T)):
-        revenue = np.sum([D[t][item_indices[i], customer_indices[r]] * B[t][item_indices[i], customer_indices[r]] * w[i, r, t] for r in R for i in LEVEL0])
-        cost_x = np.sum([float(c1[i]) * x[i, t] for i in K1 + K3])
-        cost_y = np.sum([float(c2[i]) * y[i, t] for i in K2 + K3])
+        revenue = np.sum([D[t][item_indices[i], customer_indices[r]] * B[t][item_indices[i], customer_indices[r]] * w[i, r, t] for r in R for i in LEVEL0])/1e6
+        cost_x = np.sum([float(c1[i]) * x[i, t] for i in K1 + K3])/1e6
+        cost_y = np.sum([float(c2[i]) * y[i, t] for i in K2 + K3])/1e6
         cost = cost_x + cost_y
         balance = revenue - cost
         max_revenue = np.sum([D[t][item_indices[i], customer_indices[r]] * B[t][item_indices[i], customer_indices[r]] for r in R for i in LEVEL0])
@@ -506,15 +565,13 @@ def plot_balance_over_time(D, B, w, c1, c2, x, y, item_indices, customer_indices
     plt.xticks(range(1, len(T)))
 
     # Crea una lista de ticks con el rango deseado y el paso que quieras
-    yticks = np.arange(-1e6, 8e6, step=0.5e6)  # Aquí puedes ajustar el paso como desees
+    yticks = np.arange(-1, 8, step=0.5)  # Aquí puedes ajustar el paso como desees
     # Aplica los nuevos ticks al eje y
-    plt.yticks(yticks)
-    print(revenues[11])
-    print(costs[11])
+    plt.yticks(yticks, fontsize = 12)
     # Añadir etiquetas y título
     plt.xlabel('Periodo de Tiempo', fontsize = 16)
-    plt.ylabel('Valor monetario en Euros', fontsize = 16)
-    plt.title('Evolución del Balance de Ingresos y Costes', fontsize = 18)
+    plt.ylabel('Valor monetario en millones de Euros', fontsize = 16)
+    # plt.title('Evolución del Balance de Ingresos y Costes', fontsize = 18)
     plt.legend()
 
     # Mostrar el gráfico
@@ -522,12 +579,12 @@ def plot_balance_over_time(D, B, w, c1, c2, x, y, item_indices, customer_indices
 
 def plot_inventory_average(I, I0, T, NN):
     """
-    Calcula y grafica el inventario promedio por ítem en cada período, dividido entre el ítem 62 y los demás.
+    Calcula y grafica el inventario promedio por ítem en cada periodo, dividido entre el ítem 62 y los demás.
 
     Args:
-        I (dict): Diccionario que representa el inventario de cada ítem en cada período.
+        I (dict): Diccionario que representa el inventario de cada ítem en cada periodo.
         I_0 (dict): Diccionario que representa el inventario inicial de cada ítem.
-        T (list): Lista de períodos de tiempo.
+        T (list): Lista de periodos de tiempo.
         NN (list): Lista de ítems.
     """
 
@@ -535,7 +592,7 @@ def plot_inventory_average(I, I0, T, NN):
     inventory_62 = []
     inventory_avg_others = []
 
-    # Calcular el inventario promedio por ítem para cada período
+    # Calcular el inventario promedio por ítem para cada periodo
     for t in range(len(T)):
         if t == 0:
             val_62 = I0[62]  # Rodillos, por lo que su inventario es mucho mayor 
@@ -577,24 +634,24 @@ def plot_inventory_average(I, I0, T, NN):
 
 def plot_cost_comparison(c1, c2, x, y, T, K1, K2, K3):
     """
-    Grafica una comparación entre los costos de producción (c1 * x) y los costos de compra (c2 * y) para los ítems en cada período.
+    Grafica una comparación entre los costos de producción (c1 * x) y los costos de compra (c2 * y) para los ítems en cada periodo.
 
     Args:
         c1 (dict): Costos de producción.
         c2 (dict): Costos de compra.
         x (dict): Valores de producción.
         y (dict): Valores de compra.
-        T (list): Lista de períodos de tiempo.
+        T (list): Lista de periodos de tiempo.
         K1 (list): Lista de ítems para c1.
         K2 (list): Lista de ítems para c2.
         K3 (list): Lista de ítems para ambos c1 y c2.
     """
 
-    # Inicializar listas para los costos totales por período
+    # Inicializar listas para los costos totales por periodo
     production_costs = []
     purchase_costs = []
 
-    # Calcular los costos para cada período
+    # Calcular los costos para cada periodo
     for t in range(1, len(T)):
         total_production_cost = np.sum([c1[i] * x[i, t] for i in K1+K3])
         total_purchase_cost = np.sum([c2[i] * y[i, t] for i in K2+K3])
@@ -604,9 +661,9 @@ def plot_cost_comparison(c1, c2, x, y, T, K1, K2, K3):
     # Crear el gráfico de líneas con ejes Y diferentes
     fig, ax1 = plt.subplots(figsize=(12, 6))
 
-    ax1.set_xlabel('Periodo de Tiempo', fontsize=16)
-    ax1.set_ylabel('Costes de Producción (Euros)', fontsize=16, color='b')
-    ax1.plot(range(1, len(T)), production_costs, marker='o', linestyle='-', color='b', label='Costes de Producción')
+    ax1.set_xlabel('Mes', fontsize=16)
+    ax1.set_ylabel('Costes de Fabricación (Euros)', fontsize=16, color='b')
+    ax1.plot(range(1, len(T)), production_costs, marker='o', linestyle='-', color='b', label='Costes de Fabricación')
     ax1.tick_params(axis='y', labelcolor='b')
 
     ax2 = ax1.twinx()  # Instancia un segundo eje que comparte el mismo eje x
@@ -614,9 +671,9 @@ def plot_cost_comparison(c1, c2, x, y, T, K1, K2, K3):
     ax2.plot(range(1, len(T)), purchase_costs, marker='x', linestyle='--', color='g', label='Costes de Compra')
     ax2.tick_params(axis='y', labelcolor='g')
 
-    fig.suptitle('Comparación de Costes de Producción y Compra por Periodo', fontsize=18)
+    # fig.suptitle('Comparación de Costes de Fabricación y Compra por Periodo', fontsize=18)
 
-    # Añadir las etiquetas del eje X para todos los períodos
+    # Añadir las etiquetas del eje X para todos los periodos
     plt.xticks(range(1, len(T)))
 
     # Sincronizar las cuadrículas de los dos ejes y establecer la cuadrícula
@@ -634,22 +691,22 @@ def plot_cost_comparison(c1, c2, x, y, T, K1, K2, K3):
     
 def plot_FabricaCompra_comparison(x, y, T, K1, K2, K3):
     """
-    Grafica una comparación entre la producción y los costos la compra para los ítems en cada período.
+    Grafica una comparación entre la producción y los costos la compra para los ítems en cada periodo.
 
     Args:
         x (dict): Valores de producción.
         y (dict): Valores de compra.
-        T (list): Lista de períodos de tiempo.
+        T (list): Lista de periodos de tiempo.
         K1 (list): Lista de ítems para c1.
         K2 (list): Lista de ítems para c2.
         K3 (list): Lista de ítems para ambos c1 y c2.
     """
 
-    # Inicializar listas para los costos totales por período
+    # Inicializar listas para los costos totales por periodo
     production_costs = []
     purchase_costs = []
 
-    # Calcular los costos para cada período
+    # Calcular los costos para cada periodo
     for t in range(1, len(T)):
         total_production_cost = np.sum([x[i, t] for i in K1+K3])
         total_purchase_cost = np.sum([y[i, t] for i in K2+K3])
@@ -687,7 +744,7 @@ def plot_pie_chart_costs(c1, c2, x, y, T, K1, K2, K3):
         c2 (dict): Costos de compra.
         x (dict): Valores de producción.
         y (dict): Valores de compra.
-        T (list): Lista de períodos de tiempo.
+        T (list): Lista de periodos de tiempo.
         K1 (list): Lista de ítems para c1.
         K2 (list): Lista de ítems para c2.
         K3 (list): Lista de ítems para ambos c1 y c2.
@@ -728,7 +785,7 @@ def plot_pie_chart_invent(x, y, T, K1, K2, K3):
     Args:
         x (dict): Valores de producción.
         y (dict): Valores de compra.
-        T (list): Lista de períodos de tiempo.
+        T (list): Lista de periodos de tiempo.
         K1 (list): Lista de ítems para fabricacion.
         K2 (list): Lista de ítems para compra.
         K3 (list): Lista de ítems para ambos.
@@ -773,7 +830,7 @@ def plot_route_production_comparison(routeProduction, x_values_list, T, K1, K3):
     Args:
         routeProduction (dict): Diccionario donde las claves son MyBOMITEMID y los valores son LINEROUTEID.
         x_values_list (list of dict): Lista de diccionarios donde las claves son MyBOMITEMID y los valores son los valores netos de x.
-        T (list): Lista de períodos de tiempo.
+        T (list): Lista de periodos de tiempo.
         K1 (list): Lista de ítems en K1.
         K3 (list): Lista de ítems en K3.
     """
@@ -809,7 +866,7 @@ def plot_route_production_comparison(routeProduction, x_values_list, T, K1, K3):
     # Etiquetas y título del gráfico
     plt.xlabel('Línea de producción', fontsize = 16)
     plt.ylabel('Cantidad Total de Produccion', fontsize = 16)
-    plt.title('Comparación de la cantidad total de unidades fabricadas por linea de producción')
+    # plt.title('Comparación de la cantidad total de unidades fabricadas por linea de producción')
     # plt.title('Cantidad total de unidades fabricadas por linea de producción', fontsize = 18)
     plt.xticks(np.arange(len(routes)) + width * (n_configs - 1) / 2, routes)
     plt.legend()
@@ -825,7 +882,7 @@ def plot_route_production_comparison_perT(routeProduction, x_values_list, T, K1,
     Args:
         routeProduction (dict): Diccionario donde las claves son MyBOMITEMID y los valores son LINEROUTEID.
         x_values_list (list of dict): Lista de diccionarios donde las claves son MyBOMITEMID y los valores son los valores netos de x.
-        T (list): Lista de períodos de tiempo.
+        T (list): Lista de periodos de tiempo.
         K1 (list): Lista de ítems en K1.
         K3 (list): Lista de ítems en K3.
     """
@@ -889,13 +946,13 @@ def plot_route_production_comparison_perT(routeProduction, x_values_list, T, K1,
     plt.show()
 def plot_I_compromised(c_std, I, I_0, T, K1, K2, K3):
     """
-    Grafica el inventario comprometido en cada período.
+    Grafica el inventario comprometido en cada periodo.
 
     Args:
         c_std (dict): Costos estándar.
         I_0 (dict): Inventario inicial.
         I (dict): Inventario a lo largo de los diferentes periodos de tiempo.
-        T (list): Lista de períodos de tiempo.
+        T (list): Lista de periodos de tiempo.
         K1 (list): Lista de ítems para c1.
         K2 (list): Lista de ítems para c2.
         K3 (list): Lista de ítems para ambos c1 y c2.
@@ -903,16 +960,16 @@ def plot_I_compromised(c_std, I, I_0, T, K1, K2, K3):
 
     # Inicializar listas para los costos totales por periodo
     Icompromised = []
-    Icompromised.append(np.sum([c_std[i] * I_0[i] for i in K1+K2+K3]))
-    # Calcular los costos para cada período
+    Icompromised.append(np.sum([c_std[i] * I_0[i]/1e6 for i in K1+K2+K3]))
+    # Calcular los costos para cada periodo
     for t in range(1, len(T)):
-        total_production_cost = np.sum([c_std[i] * I[i, t] for i in K1+K2+K3])
+        total_production_cost = np.sum([c_std[i] * I[i, t]/1e6 for i in K1+K2+K3])
         Icompromised.append(total_production_cost)
 
     # Crear el gráfico de líneas
     fig, ax = plt.subplots(figsize=(12, 6))
 
-    ax.plot(range(len(T)), Icompromised, marker='o', linestyle='--', color='green', label='Inventario comprometido')
+    ax.plot(range(len(T)), Icompromised, marker='o', linestyle='--', color='green', label='Capital comprometido')
 
     # Configurar la cuadrícula en el fondo
     ax.set_axisbelow(True)
@@ -923,8 +980,8 @@ def plot_I_compromised(c_std, I, I_0, T, K1, K2, K3):
     
     # Añadir etiquetas y título
     plt.xlabel('Periodo de Tiempo', fontsize = 16)
-    plt.ylabel('Valor en Euros', fontsize = 16)
-    plt.title('Inventario comprometido por Periodo', fontsize = 18)
+    plt.ylabel('Valor en millones de Euros', fontsize = 16)
+    # plt.title('Capital comprometido por Periodo', fontsize = 18)
     plt.legend()
 
     # Mostrar el gráfico
@@ -932,26 +989,26 @@ def plot_I_compromised(c_std, I, I_0, T, K1, K2, K3):
     
 def plot_I_compromised_MultipleEnv(c_std, I_list, T, K1, K2, K3):
     """
-    Grafica el inventario comprometido en cada período para cada escenario en I_list.
+    Grafica el inventario comprometido en cada periodo para cada escenario en I_list.
 
     Args:
         c_std (dict): Costos estándar.
         I_list (list of dicts): Lista donde cada elemento es un diccionario de inventarios para diferentes escenarios.
-        T (list): Lista de períodos de tiempo.
+        T (list): Lista de periodos de tiempo.
         K1 (list): Lista de ítems para c1.
         K2 (list): Lista de ítems para c2.
         K3 (list): Lista de ítems para ambos c1 y c2.
     """
 
-    # Inicializar listas para los costos totales por período para cada escenario
+    # Inicializar listas para los costos totales por periodo para cada escenario
     Icompromised_list = []
 
     # Iterar sobre cada escenario de inventario en I_list
     for I in I_list:
         Icompromised = []
-        # Calcular los costos para cada período
+        # Calcular los costos para cada periodo
         for t in range(len(T)):
-            total_production_cost = np.sum([c_std[i] * I[i, t] for i in K1 + K2 + K3])
+            total_production_cost = np.sum([c_std[i] * I[i, t]/1e6 for i in K1 + K2 + K3])
             Icompromised.append(total_production_cost)
 
         # Agregar la lista de costos comprometidos para este escenario a la lista principal
@@ -973,8 +1030,8 @@ def plot_I_compromised_MultipleEnv(c_std, I_list, T, K1, K2, K3):
 
     # Añadir etiquetas y título
     plt.xlabel('Periodo de Tiempo', fontsize=16)
-    plt.ylabel('Valor en Euros', fontsize=16)
-    plt.title('Inventario comprometido por Periodo', fontsize=18)
+    plt.ylabel('Valor en millones de Euros', fontsize=16)
+    # plt.title('Inventario comprometido por Periodo', fontsize=18)
     plt.legend()
 
     # Mostrar el gráfico
@@ -1026,7 +1083,202 @@ def plot_Opt_c2Mult(c2_mult, Optimo, Xtotal):
     plt.title('Evolución del óptimo de la función objetivo y la producción total', fontsize = 18)
     plt.show()
 
+def generar_graficos_sectores_por_mes(df):
+    """
+    Genera una matriz de gráficos de sectores para cada mes en el DataFrame dado.
+    
+    Cada gráfico muestra la distribución del número de unidades solicitadas 
+    para cada MyBOMITEMID en un mes específico.
 
+    Args:
+    df (pd.DataFrame): DataFrame con las columnas MyBOMITEMID, ITEMID, ORDERTYPE, 
+                       QUANTITY, CUSTOMERID, UNITPRICE_EUR y END_DATE.
+    """
+    # Agregar una columna para el mes
+    df['MONTH'] = df['END_DATE'].dt.month + 6
+
+    # Agrupar por mes y MyBOMITEMID y sumar las cantidades
+    grouped = df.groupby(['MONTH', 'MyBOMITEMID'])['QUANTITY'].sum().reset_index()
+
+    # Calcular el total de unidades solicitadas por cada MyBOMITEMID
+    total_quantity = grouped.groupby('MyBOMITEMID')['QUANTITY'].sum().reset_index()
+
+    # Ordenar los items por el total de unidades solicitadas en orden descendente
+    total_quantity = total_quantity.sort_values(by='QUANTITY', ascending=False)
+
+    # Lista de meses de interés
+    months = [7, 8, 9, 10, 11, 12]
+
+    # Obtener lista de items únicos en el orden de total_quantity
+    unique_items = total_quantity['MyBOMITEMID'].tolist()
+
+    # Generar colores únicos para cada item usando 'tab20b' y 'tab20c'
+    num_items = len(unique_items)
+    half_num_items = (num_items + 1) // 2
+    colors_1 = plt.get_cmap('tab20b', half_num_items)
+    colors_2 = plt.get_cmap('tab20c', num_items - half_num_items)
+
+    # Combinar los colores en un solo diccionario
+    color_map = {item: colors_1(i) if i < half_num_items else colors_2(i - half_num_items) 
+                 for i, item in enumerate(unique_items)}
+
+    # Crear subplots 3x2
+    fig, axs = plt.subplots(3, 2, figsize=(15, 15))
+
+    # Crear un gráfico de sectores para cada mes
+    wedges_list = []
+    for i, month in enumerate(months):
+        ax = axs[i // 2, i % 2]  # Determinar la posición del subplot
+        data_month = grouped[grouped['MONTH'] == month]
+        wedges, texts = ax.pie(
+            data_month['QUANTITY'], 
+            labels=None, 
+            colors=[color_map[item] for item in data_month['MyBOMITEMID']]
+        )
+        wedges_list.extend(wedges)  # Añadir wedges a la lista para la leyenda
+        ax.set_title(f'Mes {month}')
+
+    # Crear una leyenda conjunta ordenada por el total de unidades solicitadas
+    fig.legend([plt.Line2D([0], [0], color=color_map[item], lw=4) for item in unique_items], 
+               unique_items, fontsize = 15,loc='center right')
+
+    # Ajustar el layout para que los gráficos no se superpongan
+    plt.tight_layout(rect=[0, 0, 0.85, 1])  # Ajustar para hacer espacio para la leyenda
+
+    # Mostrar los gráficos
+    plt.show()
+    
+def scatter_plot_costes(c1, c2, K1, K2, K3, x, y, T):
+    """
+    Crea un scatter plot donde cada punto representa un item.
+    
+    El eje X representa el coste total a lo largo del tiempo invertido en producir unidades de un item,
+    y el eje Y representa el coste total a lo largo del tiempo invertido en comprar unidades de un item.
+    
+    Args:
+    c1 (dict): Diccionario de costes para items en K1 y K3.
+    c2 (dict): Diccionario de costes para items en K2 y K3.
+    K1 (list): Lista de items que solo se producen.
+    K2 (list): Lista de items que solo se compran.
+    K3 (list): Lista de items que se producen y compran.
+    x (dict): Diccionario de unidades producidas con clave (item, periodo).
+    y (dict): Diccionario de unidades compradas con clave (item, periodo).
+    T (list): Lista de periodos de tiempo.
+    """
+    
+    # Calcular los costes totales para cada item en cada eje
+    costes_produccion = {}
+    costes_compra = {}
+    
+    # Calcular el coste de producción para items en K1 y K3
+    for item in K1 + K3:
+        coste_total_produccion = sum(c1[item] * x[item, t] for t in range(1, len(T)))
+        costes_produccion[item] = coste_total_produccion
+    
+    # Calcular el coste de compra para items en K2 y K3
+    for item in K2 + K3:
+        coste_total_compra = sum(c2[item] * y[item, t] for t in range(1, len(T)))
+        costes_compra[item] = coste_total_compra
+
+    # Crear el scatter plot
+    plt.figure(figsize=(10, 6))
+    
+    for item in K1:
+        plt.scatter(costes_produccion[item], 0, color='blue', alpha=0.6)
+        plt.text(costes_produccion[item], 0, item, fontsize=12, ha='right', color='blue')
+    
+    for item in K2:
+        plt.scatter(0, costes_compra[item], color='green', alpha=0.6)
+        plt.text(0, costes_compra[item], item, fontsize=12, ha='right', color='green')
+    
+    for item in K3:
+        plt.scatter(costes_produccion[item], costes_compra[item], color='red', alpha=0.6)
+        plt.text(costes_produccion[item], costes_compra[item], item, fontsize=12, ha='right', color='red')
+    
+    
+    # Añadir etiquetas y leyenda
+    plt.xlabel('Costes Totales de Fabricacion en Euros', fontsize = 16)
+    plt.ylabel('Costes Totales de Compra en Euros', fontsize = 16)
+    # plt.title('Costes de producción y compra')
+    # plt.legend()
+    plt.grid(True)
+    plt.show()
+
+def scatter_plot_costes_Ud(c1, c2, K1, K2, K3):
+    """
+    Crea un scatter plot donde cada punto representa un item.
+    
+    El eje X representa el coste por unidad en producir un item,
+    y el eje Y representa el coste por unidad en comprar un item.
+    
+    Args:
+    c1 (dict): Diccionario de costes para items en K1 y K3.
+    c2 (dict): Diccionario de costes para items en K2 y K3.
+    K1 (list): Lista de items que solo se producen.
+    K2 (list): Lista de items que solo se compran.
+    K3 (list): Lista de items que se producen y compran.
+    """
+
+    # Crear el scatter plot
+    plt.figure(figsize=(10, 6))
+    
+    for item in K1:
+        plt.scatter(c1[item], 0, color='blue', alpha=0.6)
+        plt.text(c1[item], 0, item, fontsize=12, ha='right', color='blue')
+    
+    for item in K2:
+        plt.scatter(0, c2[item], color='green', alpha=0.6)
+        plt.text(0, c2[item], item, fontsize=12, ha='right', color='green')
+    
+    for item in K3:
+        plt.scatter(c1[item], c2[item], color='red', alpha=0.6)
+        plt.text(c1[item], c2[item], item, fontsize=12, ha='right', color='red')
+    
+    
+    # Añadir etiquetas y leyenda
+    plt.xlabel('Costes por unidad de Fabricacion en Euros/Ud', fontsize = 16)
+    plt.ylabel('Costes por unidad de Compra en Euros/Ud', fontsize = 16)
+    # plt.title('Costes de producción y compra')
+    # plt.legend()
+    plt.grid(True)
+    plt.show()
+
+def scatter_plot_costes_Routes(c1, routes, K1, K3):
+    """
+    Crea un scatter plot donde cada punto representa un item.
+    
+    El eje X representa la linea de produccion del item,
+    y el eje Y representa el coste por unidad en fabricar un item.
+    
+    Args:
+    c1 (dict): Diccionario de costes para items en K1 y K3.
+    routes (dict): Diccionario de lineas de produccion para items en K1 y K3.
+    K1 (list): Lista de items que solo se producen.
+    K3 (list): Lista de items que se producen y compran.
+    """
+
+    # Crear el scatter plot
+    plt.figure(figsize=(10, 6))
+    
+    for item in K1:
+        plt.scatter(routes[item], c1[item], color='blue', alpha=0.6)
+        plt.text(routes[item], c1[item], item, fontsize=12, ha='right', color='blue')
+    
+    for item in K3:
+        plt.scatter(routes[item], c1[item], color='blue', alpha=0.6)
+        plt.text(routes[item], c1[item], item, fontsize=12, ha='right', color='red')
+    
+    
+    # Añadir etiquetas y leyenda
+    plt.xlabel('Línea de Producción', fontsize = 16)
+    plt.ylabel('Costes por unidad de Compra en Euros/Ud', fontsize = 16)
+    # plt.title('Costes de producción y compra')
+    # plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    
+    
 if __name__ == "__main__":
     results, I_results, X_results, Y_results, W_results = load_results()
     BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, StdCost, Tenv = chargeEnv(mode = "default")
@@ -1037,17 +1289,18 @@ if __name__ == "__main__":
     }    # Diccionario de rutas-item
     
 
-    # plotNet([X_results[0]] + X_results[5:], K1+K3, T)
-    # plotNet(Y_results[0:4],list(set(K2 + K3)-{62}), T)
+    # plotNet([X_results[0]], K1+K3, T)
+    # plotNet(Y_results,list(set(K2 + K3)), T)
     # plotNet(I_results, list(set(K1 + K3)), T)
     # plotNet_Costes(X_results, list(set(K1 + K3)), T, c1)
-    # plotNet_Costes(Y_results, list(set(K2 + K3)), T, c2)
-    plotNetI_comprometido([I_results[0]] + I_results[5:], list(set(K1 + K2 + K3)), T, c_std)
-    # plotItem(Y_results[0:4], T, 62, "Unidades compradas por periodo del ítem 62")
+    plotNet_Costes(Y_results, list(set(K2 + K3)), T, c2)
+    plotNetI_comprometido(I_results, K1 + K2 + K3, T, c_std)
+    # plotItem(Y_results, T, 62, "Unidades compradas por periodo del ítem 62")
     # plot_inventory(I_0, 0, T)
     # plot_inventory(I_results[0], 12, T)
+    # plot_inventory_vs_cost(I_results[0], 12, T, c_std)
     # plot_demand_satisfaction(D, W_results[0], T, LEVEL0, R, item_indices, customer_indices)
-    # plot_demand_by_period(D, W_results[0], T, LEVEL0, R, item_indices, customer_indices, add_second_bar=True, start_period=7)
+    # plot_demand_by_period(D, W_results[0], T, LEVEL0, R, item_indices, customer_indices, add_second_bar=False, start_period=7)
     # plot_balance_over_time(D, B, W_results[0], c1, c2, X_results[0], Y_results[0], item_indices, customer_indices, LEVEL0, R, K1, K2, K3, T)
     # plot_inventory_average(I_results[0], I_0, T, NN)
     # plot_cost_comparison(c1, c2, X_results[0], Y_results[0], T, K1, K2, K3)
@@ -1055,8 +1308,12 @@ if __name__ == "__main__":
     # plot_pie_chart_costs(c1, c2, X_results[0], Y_results[0], T, [], [], K3)
     # plot_pie_chart_invent(X_results[5], Y_results[5], T, [], [], K3)
     # plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
-    # plot_route_production_comparison(routeProduction, [X_results[0]] + X_results[5:], T, K1, K3)
+    plot_route_production_comparison(routeProduction, X_results, T, K1, K3)
     # plot_route_production_comparison_perT(routeProduction, [X_results[0]] + X_results[5:], T, K1, K3)
     # plot_I_compromised(c_std, I_results[0], I_0, T, K1, K2, K3)
     # plot_I_compromised_MultipleEnv(c_std, I_results, T, K1, K2, K3)
     # plot_Opt_c2Mult(results['c2_multiplier'], results['ObjVal'], results['uds_fabricadas'])
+    # generar_graficos_sectores_por_mes(Orders)
+    # scatter_plot_costes(c1, c2, K1, K2, K3, X_results[0], Y_results[0], T)
+    # scatter_plot_costes_Ud(c1, c2, K1, K2, K3)
+    # scatter_plot_costes_Routes(c1, routeProduction, K1, K3)

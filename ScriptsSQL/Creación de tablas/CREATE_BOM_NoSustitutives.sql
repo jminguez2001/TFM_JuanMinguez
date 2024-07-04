@@ -1,7 +1,7 @@
 CREATE TABLE iPurchase.BOM_NoSustitutives AS 
 WITH NoSustitutives AS ( -- Se seleccionan las listas de materiales facilitadas inicialmente sin sustitutivos de la maestro de la empresa
     WITH myBOMs AS( -- Se seleccionan las BOM que se facilitaron inicialmente
-		SELECT DISTINCT BOMID, SUBSIDIARYID FROM iPurchase.BOM_fewDATA
+		SELECT DISTINCT BOMID, SUBSIDIARYID FROM iPurchase.BOM_fewDATA -- Esta tabla contiene los identificadores de las BOM con las que se trabajará
 	) SELECT
 		ba.BOMID,
 	    ba.ITEMID,

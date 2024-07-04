@@ -51,7 +51,7 @@ def DrawingBOM(BOM):
     logger.info("Se muestra el grafo no dirigido asociado")
     # Plot non directed Graph
     figD, axD = plt.subplots()
-    nx.draw_networkx(GND, pos=posND, labels=labels, with_labels=True, node_color=node_colorsND, node_size=500, font_size=10, ax=axD)
+    nx.draw_networkx(GND, pos=posND, labels=labels, with_labels=True, node_color=node_colorsND, node_size=500, font_size=12, ax=axD)
     plt.legend(handles=legend_handles, title="Layers", loc='best')
     axD.set_title("Non directed Graph", fontsize = 20)
     figD.tight_layout()
@@ -60,9 +60,9 @@ def DrawingBOM(BOM):
     logger.info("Se muestra el grafo dirigido asociado")
     # Plot directed Graph
     figD, axD = plt.subplots()
-    nx.draw_networkx(GD, pos=posD, labels=labels, with_labels=True, node_color=node_colorsD, node_size=500, font_size=10, ax=axD)
+    nx.draw_networkx(GD, pos=posD, labels=labels, with_labels=True, node_color=node_colorsD, node_size=500, font_size=12, ax=axD)
     plt.legend(handles=legend_handles, title="Layers", loc='best')
-    axD.set_title("Reversed DAG layout in topological order with layers colored", fontsize = 20)
+    # axD.set_title("Reversed DAG layout in topological order with layers colored", fontsize = 20)
     figD.tight_layout()
     plt.show()
 

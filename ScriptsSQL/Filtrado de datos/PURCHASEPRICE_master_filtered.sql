@@ -56,7 +56,7 @@ allButMOQ abm LEFT JOIN MOQPURCHASES moq
 ON abm.ITEMID = moq.ITEMID;
 
 
--- Ahora hay que fijar los valores de SUPPLIERID = '' segun las indicaciones dadas
+-- Ahora hay que fijar los valores de SUPPLIERID = '' segun las indicaciones dadas, se ponen con proveedor chino -> lead time maximo
 UPDATE iPurchase.PURCHPRICE_master_Filtered
 SET SUPPLIERID = 'P0100083',
     COUNTRY = 'CHN',

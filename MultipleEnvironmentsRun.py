@@ -9,22 +9,22 @@ if __name__ == '__main__':
 
     # Parametros para las diferentes configuraciones
     modo = "default"
-    A_Stock = [True, False] # Si se dispone de stock a tiempo 0
+    A_Stock = [True] # Si se dispone de stock a tiempo 0
     MOQs_AsParms = [True] # Si se toman como parametros la MOQ1 o no
     leadtime_purchase = [True] # Si se consideran leadtimes de compra
     leadtime_routes = [False] # Si se consideran leadtimes de fabrica
     c_act_Multiplier = [1] # Multiplicador de los costes de activacion
     lt_multipliers = [1] # Multiplicador de los leadtimes de compra
     ltf_multipliers = [1] # Multiplicador de los leadtimes de fabricacion
-    MOQ1_multipliers = [1, 0.75, 0.5, 1/3, 0] # Multiplicador de las MOQ1
-    MOQ2_multipliers = [1, 0.75, 0.5, 1/3, 0] # Multiplicador de las MOQ1
+    MOQ1_multipliers = [1] # Multiplicador de las MOQ1
+    MOQ2_multipliers = [1] # Multiplicador de las MOQ1
     c2_multipliers = [1] # Multiplicador de los costes de compra
-    Q_invent_multipliers = [1] # Multiplicador de la capacidad de inventario
+    Q_invent_multipliers = [1, 0.75, 0.5] # Multiplicador de la capacidad de inventario
     c1_fc2 = [False] # Si se consideran los costes de fabricacion de los item mixtos como funcion de los de compra
     c1_fc2_multiplier = [1] # Multiplicador para poner los costes de fabricacion como funcion de los de compra
-    Param_I_0 = [True] # Si se considera el inventario inicial como parametro
-    Costes_invent = [False] # Si se consideran costes de inventario
-    Invent_Capacity = [False] # Si se consideran capacidades de inventario
+    Param_I_0 = [True, False] # Si se considera el inventario inicial como parametro
+    Costes_invent = [False, True] # Si se consideran costes de inventario
+    Invent_Capacity = [False, True] # Si se consideran capacidades de inventario
     Fabrica_Capacity = [False] # Si se consideran capacidades de fabrica
     minimum_delivery_rate = [0] # Ratio de pedidos satisfechos
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
         MOQ2_multipliers_aux = MOQ2_multipliers if m else [1]
         c1_fc2_multiplier_aux = c1_fc2_multiplier if c1Asc2 else [1]
         Q_invent_multipliers_aux = Q_invent_multipliers if IQ else [1]
-        if (not (not i0_p and not IQ)) and (not (i0_p and IQ)): # No tiene sentido considerar casos en los que I_0 sea una variable y no haya limite en la capacidad de inventario
+        if (not (not i0_p and not IQ)) and (not (i0_p and IQ)) and (not (i0_p and ci)): # No tiene sentido considerar casos en los que I_0 sea una variable y no haya limite en la capacidad de inventario
                                                           # Considerar capacidades de inventario e inventario inicial como paramtero puede dar lugar a modelos sin solucion dependiendo del valor de las capacidades
             for cMult, ltm, ltfm, MOQ1m, MOQ2m, c1Asc2m, Qim in itertools.product(c_act_Multiplier_aux, lt_multipliers_aux, 
                                                             ltf_multipliers_aux, MOQ1_multipliers_aux, MOQ2_multipliers_aux,
