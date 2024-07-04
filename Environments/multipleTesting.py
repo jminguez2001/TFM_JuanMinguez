@@ -18,20 +18,29 @@ def Test(mode = "default", Available_Stock = True, Param_MOQ = True,
          , Q_invent_Multiplier = 1, c2_Multiplier = 1
          , minimum_delivery_rate = 0,
          index = 0):
-    """Simula el modelo para la configuracion introducida
+    """
+    Simula el modelo para la configuración introducida.
 
     Args:
-        mode (str, optional): Entorno de simulacion, es decir, los datos de entrada. Defaults to "TOY".
+        mode (str, optional): Entorno de simulación, es decir, los datos de entrada. Defaults to "TOY".
         Available_Stock (bool, optional): Si se considera stock inicial o no. Defaults to True.
-        Param_MOQ (bool, optional): Si se considera las MOQ1 como parametros o se deja libre como variable. Defaults to True.
+        Param_MOQ (bool, optional): Si se consideran las MOQ1 como parámetros o se deja libre como variable. Defaults to True.
         leadtime_purchase (bool, optional): Si se consideran lead times de compra o no. Defaults to True.
-        leadtime_routes (bool, optional): Si se consideran lead times de fabricacion o no. Defaults to False.
-        c_act_Multiplier (int, optional): multiplicador de los costes de activacion. Defaults to 1.
-        lt_Multiplier (int, optional): multiplicador de los lead time de compra. Defaults to 1.
-        ltf_Multiplier (int, optional): multiplicador de los lead time de fabricacion. Defaults to 1.
+        leadtime_routes (bool, optional): Si se consideran lead times de fabricación o no. Defaults to False.
+        c_act_Multiplier (int, optional): Multiplicador de los costes de activación. Defaults to 1.
+        lt_Multiplier (int, optional): Multiplicador de los lead time de compra. Defaults to 1.
+        ltf_Multiplier (int, optional): Multiplicador de los lead time de fabricación. Defaults to 1.
+        MOQ1_multipliter (int, optional): Multiplicador de las MOQ1. Defaults to 1.
+        MOQ2_multipliter (int, optional): Multiplicador de las MOQ2. Defaults to 1.
+        c1_fc2 (bool, optional): Si los costes de fabricación son función de los costes de compra. Defaults to False.
+        c1_fc2_multiplier (int, optional): Multiplicador para los costes de fabricación como función de los de compra. Defaults to 1.
+        Q_invent_Multiplier (int, optional): Multiplicador de capacidades de inventario. Defaults to 1.
+        c2_Multiplier (int, optional): Multiplicador de costes de compra. Defaults to 1.
+        minimum_delivery_rate (float, optional): Ratio mínimo de pedidos satisfechos. Defaults to 0.
+        index (int, optional): Índice del test. Defaults to 0.
 
     Returns:
-        float: parametros que describen la solucion (% de unidades demandadas no satisfechas, % de pedidos no satisfechos, valor optimo de la f.objetivo)
+        tuple: Parámetros que describen la solución (% de unidades demandadas no satisfechas, % de pedidos no satisfechos, valor óptimo de la función objetivo).
     """
     
     

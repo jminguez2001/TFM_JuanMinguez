@@ -9,9 +9,17 @@ import globalParameters
 
 
 def initLogger(processName, origin):
-    # TODO logging.config.fileConfig('logging.conf')
+    """
+    initLogger inicializa y configura un logger para un proceso específico.
 
-    # create logger
+    Args:
+        processName (str): nombre del proceso para el logger.
+        origin (str): origen del log (usado en el nombre del archivo de log).
+
+    Returns:
+        logging.Logger: objeto logger configurado.
+    """
+
     logger = logging.getLogger(processName)
     logger.setLevel(logging.DEBUG)
     rotatingFilehandler = ConcurrentRotatingFileHandler(globalParameters.path + "/logs/"+origin+".log", maxBytes=20000, backupCount=10)

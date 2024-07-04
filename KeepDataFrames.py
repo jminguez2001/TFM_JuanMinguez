@@ -11,14 +11,21 @@ from SQL_python.SQLstatements import *
 
 
 if __name__ == '__main__':
+    """
+    Este script principal configura el logger y establece una conexión con la base de datos de Vertica
+    para extraer datos esenciales como la lista de materiales (BOM), artículos mixtos, artículos de compra,
+    rutas, órdenes de venta, stock y coste estándar. Los datos extraídos se guardan en archivos pickle
+    para su uso posterior.
+    """
+    # Inicializar el logger
     logger = initLogger(os.path.splitext(os.path.basename(__file__))[0],
                     os.path.splitext(os.path.basename(__file__))[0])
     logger.info('Comenzando ejecución para establecer conexion a la base de datos...')
     default_environment = globalParameters.ENVIRONMENT
     config = configparser.ConfigParser()
-    config.read('contexts\\' + 'DB_Context.ini') # We use the data base config
+    config.read('contexts\\' + 'DB_Context.ini') # Usamos la configuración de la base de datos
     
-    # Connect to vertica -to get enabled tables
+    # Configuración del entorno y lectura del archivo de configuración de la base de datos
     verticaConnDEV = verticaConn(config[default_environment]['environment'],
                                     config[default_environment]['host'],
                                     config[default_environment]['port'], 
@@ -27,10 +34,9 @@ if __name__ == '__main__':
                                     base64.b64decode(config[default_environment]['fersaPwd']).decode("utf-8"),
                                     os.path.splitext(os.path.basename(__file__))[0])
     
-    # Ignoring warnings while fixing vertica connection
     warnings.simplefilter(action='ignore', category=UserWarning)
     
-    # We are using select distinct because there are repeated rows due to the itempath -> talk with diego   
+    # Ejecutar consultas para obtener datos esenciales
     BOM = executeQuery(verticaConnDEV, "SELECT DISTINCT MyBOMID, MyITEMID, MyPARENTBOMITEMID, MyBOMITEMID, \"LEVEL\", MAXIBOQTY FROM iPurchase.BOM_NoSustitutives;")
     MixedItems = executeQuery(verticaConnDEV, query_identify_MixedItems)
     PurchaseItems = executeQuery(verticaConnDEV, query_identify_PurchaseItems)
@@ -38,7 +44,8 @@ if __name__ == '__main__':
     Orders = executeQuery(verticaConnDEV, "SELECT * FROM iPurchase.SalesOrders")
     Stock = executeQuery(verticaConnDEV, query_getSTOCK)
     StandardCost = executeQuery(verticaConnDEV, query_getStdCost)
-
+   
+    # Guardar los datos obtenidos en archivos pickle
     BOM.to_pickle('./DataFiles/BOM.pkl')
     MixedItems.to_pickle('./DataFiles/MixedItems.pkl')
     PurchaseItems.to_pickle('./DataFiles/PurchaseItems.pkl')

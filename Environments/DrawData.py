@@ -25,6 +25,14 @@ except ModuleNotFoundError as e:
 
 
 def load_results(folder="./Resultados"):
+    """Lee los archivos de los resultados y los devuelve como listas
+
+    Args:
+        folder (str, optional): path de los archivos con los resultados.
+
+    Returns:
+        tuple: listas con los resultados.
+    """
     results = pd.read_excel(f"{folder}/RESULTADOS.xlsx", sheet_name="resultados")
     with open(f'{folder}/I_results.pkl', 'rb') as f:
         I_results = pickle.load(f)
@@ -37,7 +45,187 @@ def load_results(folder="./Resultados"):
 
     return results, I_results, X_results, Y_results, W_results
 
+   
+def plot_inventory(I, time_period, T):
+    """
+    Genera un gráfico de barras que muestra el inventario para cada ítem en un periodo de tiempo dado.
 
+    Args:
+        I (dict): Diccionario con inventarios, donde la clave es una tupla (i, t) que representa el ítem y el periodo de tiempo.
+        time_period (int): El periodo de tiempo para el cual se desea visualizar el inventario.
+        T (list): Lista de periodos de tiempo.
+
+    Returns:
+        None: Muestra un gráfico de barras donde el eje X representa los ítems y el eje Y representa el inventario para el periodo de tiempo dado.
+    """
+    if time_period!= 0:
+        # Filtra el inventario para el periodo de tiempo dado
+        inventory_for_period = {i: inventory for (i, t), inventory in I.items() if t == time_period}
+    else:
+        inventory_for_period = {i: inventory for i, inventory in I.items()}
+
+
+    # Separa el inventario del ítem 62 del resto
+    inventory_62 = inventory_for_period.pop(62)
+    items_except_62 = list(inventory_for_period.keys())
+    inventories_except_62 = list(inventory_for_period.values())
+
+    # Crea la gráfica de barras
+    fig, ax1 = plt.subplots(figsize=(10, 6))
+
+    # Grafica los ítems excepto el 62 en el eje principal
+    ax1.bar(items_except_62, inventories_except_62, color='lightblue', label='Otros ítems')
+
+    # Configuración del primer eje
+    ax1.set_xlabel("Ítem")
+    ax1.set_ylabel("Inventario")
+    ax1.set_title(f"Inventario por ítem en el periodo de tiempo {T[time_period].strftime('%d-%m-%y')}")
+
+    # Crear un segundo eje para el ítem 62
+    ax2 = ax1.twinx()
+    ax2.bar([62], [inventory_62], color='blue', label='Ítem 62')
+    ax2.set_ylabel('Inventario Ítem 62', color='blue')
+    ax2.tick_params(axis='y', labelcolor='blue')
+    ax2.set_ylim(bottom = 0)
+    if inventory_62 == 0:
+        ax2.set_ylim(bottom = 0, top = 1000)
+
+    # Agregar leyendas
+    ax1.legend(loc='upper left')
+    ax2.legend(loc='upper right')
+
+    # Muestra la gráfica
+    plt.show()
+
+def plot_inventory_vs_cost(I, time_period, T, c_std):
+    """
+    Genera un gráfico de líneas que muestra el inventario para cada ítem en un periodo de tiempo dado, junto con el coste comprometido en un gráfico de barras.
+
+    Args:
+        I (dict): Diccionario con inventarios, donde la clave es una tupla (i, t) que representa el ítem y el periodo de tiempo.
+        time_period (int): El periodo de tiempo para el cual se desea visualizar el inventario.
+        T (list): Lista de periodos de tiempo.
+        c_std (dict): Costes estándar por ítem.
+
+    Returns:
+        None: Muestra un gráfico de líneas para el inventario y un gráfico de barras para el coste comprometido.
+    """
+    # Filtra el inventario y el coste para el periodo de tiempo dado
+    if time_period != 0:
+        inventory_for_period = {i: inventory for (i, t), inventory in I.items() if t == time_period}
+        inventory_cost_for_period = {i: inventory * c_std[i] for (i, t), inventory in I.items() if t == time_period}
+    else:
+        inventory_for_period = {i: inventory for i, inventory in I.items()}
+        inventory_cost_for_period = {i: inventory * c_std[i] for i, inventory in I.items()}
+
+    items = list(inventory_for_period.keys())
+    inventory_values = list(inventory_for_period.values())
+    cost_values = list(inventory_cost_for_period.values())
+
+    x = np.arange(len(items))  # Posiciones en el eje X
+
+    # Crea la gráfica
+    fig, ax1 = plt.subplots(figsize=(10, 6))
+
+    # Grafica el inventario como barras en el eje principal
+    ax1.bar(x, inventory_values, color='lightblue', label='Inventario')
+
+    # Configuración del primer eje
+    ax1.set_xlabel("Ítem", fontsize = 16)
+    ax1.set_ylabel("Inventario", fontsize = 16)
+    ax1.tick_params(axis='y', size = 12)
+    # ax1.set_title("Inventario e Inventario comprometido por ítem")
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(items)
+
+    # Ajustar los xticks para que aparezcan cada 5 ítems
+    ax1.set_xticks(np.arange(0, len(items), 5))
+
+    # Crear un segundo eje para el coste del inventario
+    ax2 = ax1.twinx()
+    ax2.plot(x, cost_values, marker='o', linestyle='--', color='red', alpha=0.6, label='Capital comprometido')
+    ax2.set_ylabel('Euros', color='red', fontsize = 16)
+    ax2.tick_params(axis='y', labelcolor='red', size = 12)
+    ax2.set_ylim(bottom=0)
+
+    # Agregar leyendas
+    ax1.legend(loc='upper left')
+    ax2.legend(loc='upper right')
+
+    # Muestra la gráfica
+    plt.show()
+
+
+def plot_demand_satisfaction(D, w, T, LEVEL0, R, item_indices, customer_indices):
+    """
+    Crea un gráfico de barras que muestra la demanda satisfecha y no satisfecha por artículo.
+
+    Args:
+        D (list): Lista de matrices de demanda, que representa la demanda de unidades del artículo i por el cliente r en el periodo t.
+        w (dict): Diccionario que indica si el artículo i pedido por el cliente r en el periodo t está satisfecho (1) o no (0).
+        T (list): Conjunto de periodos.
+        LEVEL0 (list): Conjunto de ítems a nivel 0.
+        R (list): Conjunto de clientes.
+        item_indices (dict): mapea los ítems i, con los indices de D
+        customer_indices (dict): mapea los customer r, con los indices de D
+    """
+    
+    # Inicializar la demanda total y la demanda satisfecha para cada artículo
+    total_demand = {i: 0 for i in LEVEL0}
+    fulfilled_demand = {i: 0 for i in LEVEL0}
+
+    # Calcular la demanda total y la demanda satisfecha para cada artículo
+    for t in range(1,len(T)):
+        for i in LEVEL0:
+            for r in R:
+                total_demand[i] += D[t][item_indices[i], customer_indices[r]]
+                fulfilled_demand[i] +=D[t][item_indices[i], customer_indices[r]] * w[i,r,t]
+
+    # Calcular la demanda no satisfecha para cada artículo
+    unfulfilled_demand = {i: total_demand[i] - fulfilled_demand[i] for i in LEVEL0}
+
+    # Preparar los datos para el gráfico
+    labels = [f'{i}' for i in LEVEL0]
+    fulfilled = [fulfilled_demand[i] for i in LEVEL0]
+    unfulfilled = [unfulfilled_demand[i] for i in LEVEL0]
+
+    x = np.arange(len(labels))  # ubicaciones de las etiquetas
+    width = 0.35  # ancho de las barras
+
+    # Crear el gráfico de barras
+    fig, ax = plt.subplots()
+    bars1 = ax.bar(x, fulfilled, width, label='Satisfecho')
+    bars2 = ax.bar(x, unfulfilled, width, bottom=fulfilled, label='No Satisfecho')
+
+    # Ajustar los límites del eje y para asegurar que todas las barras sean visibles
+    max_height = max([f + u for f, u in zip(fulfilled, unfulfilled)])
+    ax.set_ylim(0, max_height * 1.1)
+    
+    # Añadir etiquetas y título
+    ax.set_xlabel('Ítems a nivel 0')
+    ax.set_ylabel('Unidades')
+    ax.set_title('Demanda Satisfecha y No Satisfecha por Ítem')
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.legend()
+    ax.set_axisbelow(True)
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+
+    # Añadir valores en la parte superior de las barras
+    def add_labels(bars):
+        for bar in bars:
+            height = bar.get_height()
+            if height > 0:
+                ax.annotate('{}'.format(height),
+                            xy=(bar.get_x() + bar.get_width() / 2, height),
+                            xytext=(0, 3),  # Desplazamiento vertical de 3 puntos
+                            textcoords="offset points",
+                            ha='center', va='bottom')
+
+    add_labels(bars1)
+    add_labels(bars2)
+
+    plt.show()
 def plotNet(X_results, sets, T):
     X_values = []
     for i in sorted(sets):
@@ -223,187 +411,8 @@ def plotItem(X_results, T, item, titulo):
         ax.axvline(pos + width * (num_configs - 1) / 2 + (x[1]-x[0])/2 , color='grey', linestyle='--')
 
     plt.show()
-    
-def plot_inventory(I, time_period, T):
-    """
-    Genera un gráfico de barras que muestra el inventario para cada ítem en un periodo de tiempo dado.
-
-    Args:
-        I (dict): Diccionario con inventarios, donde la clave es una tupla (i, t) que representa el ítem y el periodo de tiempo.
-        time_period (int): El periodo de tiempo para el cual se desea visualizar el inventario.
-        T (list): Lista de periodos de tiempo.
-
-    Returns:
-        None: Muestra un gráfico de barras donde el eje X representa los ítems y el eje Y representa el inventario para el periodo de tiempo dado.
-    """
-    if time_period!= 0:
-        # Filtra el inventario para el periodo de tiempo dado
-        inventory_for_period = {i: inventory for (i, t), inventory in I.items() if t == time_period}
-    else:
-        inventory_for_period = {i: inventory for i, inventory in I.items()}
 
 
-    # Separa el inventario del ítem 62 del resto
-    inventory_62 = inventory_for_period.pop(62)
-    items_except_62 = list(inventory_for_period.keys())
-    inventories_except_62 = list(inventory_for_period.values())
-
-    # Crea la gráfica de barras
-    fig, ax1 = plt.subplots(figsize=(10, 6))
-
-    # Grafica los ítems excepto el 62 en el eje principal
-    ax1.bar(items_except_62, inventories_except_62, color='lightblue', label='Otros ítems')
-
-    # Configuración del primer eje
-    ax1.set_xlabel("Ítem")
-    ax1.set_ylabel("Inventario")
-    ax1.set_title(f"Inventario por ítem en el periodo de tiempo {T[time_period].strftime('%d-%m-%y')}")
-
-    # Crear un segundo eje para el ítem 62
-    ax2 = ax1.twinx()
-    ax2.bar([62], [inventory_62], color='blue', label='Ítem 62')
-    ax2.set_ylabel('Inventario Ítem 62', color='blue')
-    ax2.tick_params(axis='y', labelcolor='blue')
-    ax2.set_ylim(bottom = 0)
-    if inventory_62 == 0:
-        ax2.set_ylim(bottom = 0, top = 1000)
-
-    # Agregar leyendas
-    ax1.legend(loc='upper left')
-    ax2.legend(loc='upper right')
-
-    # Muestra la gráfica
-    plt.show()
-
-def plot_inventory_vs_cost(I, time_period, T, c_std):
-    """
-    Genera un gráfico de líneas que muestra el inventario para cada ítem en un periodo de tiempo dado, junto con el coste comprometido en un gráfico de barras.
-
-    Args:
-        I (dict): Diccionario con inventarios, donde la clave es una tupla (i, t) que representa el ítem y el periodo de tiempo.
-        time_period (int): El periodo de tiempo para el cual se desea visualizar el inventario.
-        T (list): Lista de periodos de tiempo.
-        c_std (dict): Costes estándar por ítem.
-
-    Returns:
-        None: Muestra un gráfico de líneas para el inventario y un gráfico de barras para el coste comprometido.
-    """
-    # Filtra el inventario y el coste para el periodo de tiempo dado
-    if time_period != 0:
-        inventory_for_period = {i: inventory for (i, t), inventory in I.items() if t == time_period}
-        inventory_cost_for_period = {i: inventory * c_std[i] for (i, t), inventory in I.items() if t == time_period}
-    else:
-        inventory_for_period = {i: inventory for i, inventory in I.items()}
-        inventory_cost_for_period = {i: inventory * c_std[i] for i, inventory in I.items()}
-
-    items = list(inventory_for_period.keys())
-    inventory_values = list(inventory_for_period.values())
-    cost_values = list(inventory_cost_for_period.values())
-
-    x = np.arange(len(items))  # Posiciones en el eje X
-
-    # Crea la gráfica
-    fig, ax1 = plt.subplots(figsize=(10, 6))
-
-    # Grafica el inventario como barras en el eje principal
-    ax1.bar(x, inventory_values, color='lightblue', label='Inventario')
-
-    # Configuración del primer eje
-    ax1.set_xlabel("Ítem", fontsize = 16)
-    ax1.set_ylabel("Inventario", fontsize = 16)
-    ax1.tick_params(axis='y', size = 12)
-    # ax1.set_title("Inventario e Inventario comprometido por ítem")
-    ax1.set_xticks(x)
-    ax1.set_xticklabels(items)
-
-    # Ajustar los xticks para que aparezcan cada 5 ítems
-    ax1.set_xticks(np.arange(0, len(items), 5))
-
-    # Crear un segundo eje para el coste del inventario
-    ax2 = ax1.twinx()
-    ax2.plot(x, cost_values, marker='o', linestyle='--', color='red', alpha=0.6, label='Capital comprometido')
-    ax2.set_ylabel('Euros', color='red', fontsize = 16)
-    ax2.tick_params(axis='y', labelcolor='red', size = 12)
-    ax2.set_ylim(bottom=0)
-
-    # Agregar leyendas
-    ax1.legend(loc='upper left')
-    ax2.legend(loc='upper right')
-
-    # Muestra la gráfica
-    plt.show()
-
-
-def plot_demand_satisfaction(D, w, T, LEVEL0, R, item_indices, customer_indices):
-    """
-    Crea un gráfico de barras que muestra la demanda satisfecha y no satisfecha por artículo.
-
-    Args:
-        D (list): Lista de matrices de demanda, que representa la demanda de unidades del artículo i por el cliente r en el periodo t.
-        w (dict): Diccionario que indica si el artículo i pedido por el cliente r en el periodo t está satisfecho (1) o no (0).
-        T (list): Conjunto de periodos.
-        LEVEL0 (list): Conjunto de ítems a nivel 0.
-        R (list): Conjunto de clientes.
-        item_indices (dict): mapea los ítems i, con los indices de D
-        customer_indices (dict): mapea los customer r, con los indices de D
-    """
-    
-    # Inicializar la demanda total y la demanda satisfecha para cada artículo
-    total_demand = {i: 0 for i in LEVEL0}
-    fulfilled_demand = {i: 0 for i in LEVEL0}
-
-    # Calcular la demanda total y la demanda satisfecha para cada artículo
-    for t in range(1,len(T)):
-        for i in LEVEL0:
-            for r in R:
-                total_demand[i] += D[t][item_indices[i], customer_indices[r]]
-                fulfilled_demand[i] +=D[t][item_indices[i], customer_indices[r]] * w[i,r,t]
-
-    # Calcular la demanda no satisfecha para cada artículo
-    unfulfilled_demand = {i: total_demand[i] - fulfilled_demand[i] for i in LEVEL0}
-
-    # Preparar los datos para el gráfico
-    labels = [f'{i}' for i in LEVEL0]
-    fulfilled = [fulfilled_demand[i] for i in LEVEL0]
-    unfulfilled = [unfulfilled_demand[i] for i in LEVEL0]
-
-    x = np.arange(len(labels))  # ubicaciones de las etiquetas
-    width = 0.35  # ancho de las barras
-
-    # Crear el gráfico de barras
-    fig, ax = plt.subplots()
-    bars1 = ax.bar(x, fulfilled, width, label='Satisfecho')
-    bars2 = ax.bar(x, unfulfilled, width, bottom=fulfilled, label='No Satisfecho')
-
-    # Ajustar los límites del eje y para asegurar que todas las barras sean visibles
-    max_height = max([f + u for f, u in zip(fulfilled, unfulfilled)])
-    ax.set_ylim(0, max_height * 1.1)
-    
-    # Añadir etiquetas y título
-    ax.set_xlabel('Ítems a nivel 0')
-    ax.set_ylabel('Unidades')
-    ax.set_title('Demanda Satisfecha y No Satisfecha por Ítem')
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels)
-    ax.legend()
-    ax.set_axisbelow(True)
-    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
-
-    # Añadir valores en la parte superior de las barras
-    def add_labels(bars):
-        for bar in bars:
-            height = bar.get_height()
-            if height > 0:
-                ax.annotate('{}'.format(height),
-                            xy=(bar.get_x() + bar.get_width() / 2, height),
-                            xytext=(0, 3),  # Desplazamiento vertical de 3 puntos
-                            textcoords="offset points",
-                            ha='center', va='bottom')
-
-    add_labels(bars1)
-    add_labels(bars2)
-
-    plt.show()
 def plot_demand_by_period(D, w, T, LEVEL0, R, item_indices, customer_indices, add_second_bar=True, start_period=0):
     """
     Crea un gráfico de barras apiladas por periodo de tiempo, con la opción de añadir una segunda barra que subdivida en demanda satisfecha y no satisfecha.
@@ -1293,8 +1302,8 @@ if __name__ == "__main__":
     # plotNet(Y_results,list(set(K2 + K3)), T)
     # plotNet(I_results, list(set(K1 + K3)), T)
     # plotNet_Costes(X_results, list(set(K1 + K3)), T, c1)
-    plotNet_Costes(Y_results, list(set(K2 + K3)), T, c2)
-    plotNetI_comprometido(I_results, K1 + K2 + K3, T, c_std)
+    # plotNet_Costes(Y_results, list(set(K2 + K3)), T, c2)
+    # plotNetI_comprometido(I_results, K1 + K2 + K3, T, c_std)
     # plotItem(Y_results, T, 62, "Unidades compradas por periodo del ítem 62")
     # plot_inventory(I_0, 0, T)
     # plot_inventory(I_results[0], 12, T)

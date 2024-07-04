@@ -5,7 +5,13 @@ import pandas as pd
 from Environments.multipleTesting import Test
 
 if __name__ == '__main__':
-    """Runs different configurations of the model and saves the results"""
+    """
+    Este script principal el modelo en diferentes entornos en función de los parámetros elegidos Los parámetros incluyen disponibilidad de 
+    stock inicial, consideración de tiempos de entrega, multiplicadores de costes, y capacidades de inventario y fábrica. 
+    
+    Los resultados se almacenan en un DataFrame y se guardan en un archivo Excel y varios archivos pickle para un análisis posterior.
+    """
+
 
     # Parametros para las diferentes configuraciones
     modo = "default"

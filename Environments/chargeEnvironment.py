@@ -3,6 +3,15 @@ from Environments.Df_TOY import chargeToy
 
 
 def chargeEnv(mode = "default"):
+    """
+    chargeEnv carga los datos necesarios según el modo especificado.
+
+    Args:
+        mode (str): modo de operación para cargar los datos. Puede ser "default" o "TOY".
+
+    Returns:
+        tuple: conteniendo DataFrames de BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, StdCost y Tenv.
+    """
     match mode:
         case "default":
             BOM = pd.read_pickle('./DataFiles/BOM.pkl')

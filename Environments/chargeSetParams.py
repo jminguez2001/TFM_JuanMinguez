@@ -5,7 +5,22 @@ import datetime as dt
 from BOM_graph.StudyBOM import GenerateGraph
 
 def charge_SetParams(BOM, MixedItems, PurchaseItems, RouteItems, Orders, Stock, StdCost, Tenv):
-    
+    """
+    charge_SetParams configura los parámetros necesarios para la optimización de la producción y la logística.
+
+    Args:
+        BOM (DataFrame): Lista de materiales.
+        MixedItems (DataFrame): Ítems mixtos.
+        PurchaseItems (DataFrame): Ítems de compra.
+        RouteItems (DataFrame): Ítems de fabricación.
+        Orders (DataFrame): Pedidos.
+        Stock (DataFrame): Inventario.
+        StdCost (DataFrame): Costes estándar.
+        Tenv (int): Número de periodos de tiempo.
+
+    Returns:
+        tuple: conteniendo múltiples parámetros configurados para la optimización.
+    """    
     # Grafo
     G = GenerateGraph(BOM, typeG_ND = False, connected = True)
 
