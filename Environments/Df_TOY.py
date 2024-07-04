@@ -1,7 +1,7 @@
 import pandas as pd
 
 def chargeToy():
-    """Define los valores del entorno de juguete
+    """Define los valores del entorno de juguete utilizado para hacer pruebas en el desarrollo del TFM
 
     Returns:
         pd.DataFrame: diferentes df con los datos del modelo de juguete

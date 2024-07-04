@@ -12,9 +12,6 @@ if __name__ == '__main__':
     
     BOM = pd.read_pickle('./DataFiles/BOM.pkl')
     
-    # BOMs = [14, 15] # Looking for a small selection
-    # BOM = BOM[BOM['MyBOMID'].isin(BOMs)]
-    
     # Study the connectivity of the graph
     Study_BOM(BOM) # It is non connected
     Draw_NonDirectedGraph(BOM, logger) # The node 44 is appart from the others -> Delete line

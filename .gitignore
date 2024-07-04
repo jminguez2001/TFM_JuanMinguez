@@ -15,3 +15,6 @@ globalParameters.py
 
 # Counter
 /.VSCodeCounter
+
+# Archivos de datos
+/DataFiles
