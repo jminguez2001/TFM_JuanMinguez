@@ -25,12 +25,12 @@ if __name__ == '__main__':
     MOQ1_multipliers = [1] # Multiplicador de las MOQ1
     MOQ2_multipliers = [1] # Multiplicador de las MOQ1
     c2_multipliers = [1] # Multiplicador de los costes de compra
-    Q_invent_multipliers = [1, 0.75, 0.5] # Multiplicador de la capacidad de inventario
+    Q_invent_multipliers = [1] # Multiplicador de la capacidad de inventario
     c1_fc2 = [False] # Si se consideran los costes de fabricacion de los item mixtos como funcion de los de compra
     c1_fc2_multiplier = [1] # Multiplicador para poner los costes de fabricacion como funcion de los de compra
-    Param_I_0 = [True, False] # Si se considera el inventario inicial como parametro
-    Costes_invent = [False, True] # Si se consideran costes de inventario
-    Invent_Capacity = [False, True] # Si se consideran capacidades de inventario
+    Param_I_0 = [True] # Si se considera el inventario inicial como parametro
+    Costes_invent = [False] # Si se consideran costes de inventario
+    Invent_Capacity = [False] # Si se consideran capacidades de inventario
     Fabrica_Capacity = [False] # Si se consideran capacidades de fabrica
     minimum_delivery_rate = [0] # Ratio de pedidos satisfechos
 

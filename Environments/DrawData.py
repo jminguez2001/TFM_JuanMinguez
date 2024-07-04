@@ -874,7 +874,7 @@ def plot_route_production_comparison(routeProduction, x_values_list, T, K1, K3):
 
     # Etiquetas y título del gráfico
     plt.xlabel('Línea de producción', fontsize = 16)
-    plt.ylabel('Cantidad Total de Produccion', fontsize = 16)
+    plt.ylabel('Unidades totales fabricadas', fontsize = 16)
     # plt.title('Comparación de la cantidad total de unidades fabricadas por linea de producción')
     # plt.title('Cantidad total de unidades fabricadas por linea de producción', fontsize = 18)
     plt.xticks(np.arange(len(routes)) + width * (n_configs - 1) / 2, routes)
@@ -1064,10 +1064,12 @@ def plot_Opt_c2Mult(c2_mult, Optimo, Xtotal):
     # Crear la figura y el eje principal
     fig, ax1 = plt.subplots()
 
+    OptimoMillones = [x / 1e6 for x in Optimo]
+    
     # Graficar Optimo en el eje Y izquierdo
     ax1.set_xlabel('Factor de reducción', fontsize = 16)
-    ax1.set_ylabel('Valor Óptimo', color='tab:blue', fontsize = 16)
-    ax1.plot(c2_mult, Optimo, linestyle='-',color='tab:blue', label='Valor Óptimo')
+    ax1.set_ylabel('Valor monetario en millones de euros', color='tab:blue', fontsize = 16)
+    ax1.plot(c2_mult, OptimoMillones, linestyle='-',color='tab:blue', label='Valor Óptimo del Beneficio')
     ax1.tick_params(axis='y', labelcolor='tab:blue')
     
     ax1.set_xlim(ax1.get_xlim()[::-1])
@@ -1089,7 +1091,7 @@ def plot_Opt_c2Mult(c2_mult, Optimo, Xtotal):
     ax2.tick_params(axis='both', which='major', labelsize=10)
 
     # Mostrar el gráfico resultante
-    plt.title('Evolución del óptimo de la función objetivo y la producción total', fontsize = 18)
+    # plt.title('Evolución del óptimo de la función objetivo y la producción total', fontsize = 18)
     plt.show()
 
 def generar_graficos_sectores_por_mes(df):
@@ -1303,7 +1305,7 @@ if __name__ == "__main__":
     # plotNet(I_results, list(set(K1 + K3)), T)
     # plotNet_Costes(X_results, list(set(K1 + K3)), T, c1)
     # plotNet_Costes(Y_results, list(set(K2 + K3)), T, c2)
-    # plotNetI_comprometido(I_results, K1 + K2 + K3, T, c_std)
+    # plotNetI_comprometido([I_results[0]]+I_results[5:], K1 + K2 + K3, T, c_std)
     # plotItem(Y_results, T, 62, "Unidades compradas por periodo del ítem 62")
     # plot_inventory(I_0, 0, T)
     # plot_inventory(I_results[0], 12, T)
@@ -1317,7 +1319,7 @@ if __name__ == "__main__":
     # plot_pie_chart_costs(c1, c2, X_results[0], Y_results[0], T, [], [], K3)
     # plot_pie_chart_invent(X_results[5], Y_results[5], T, [], [], K3)
     # plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
-    plot_route_production_comparison(routeProduction, X_results, T, K1, K3)
+    # plot_route_production_comparison(routeProduction, [X_results[0]] + X_results[5:], T, K1, K3)
     # plot_route_production_comparison_perT(routeProduction, [X_results[0]] + X_results[5:], T, K1, K3)
     # plot_I_compromised(c_std, I_results[0], I_0, T, K1, K2, K3)
     # plot_I_compromised_MultipleEnv(c_std, I_results, T, K1, K2, K3)
