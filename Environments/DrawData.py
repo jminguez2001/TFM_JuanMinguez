@@ -303,9 +303,14 @@ def plotNet_Costes(X_results, sets, T, c):
     fig, ax = plt.subplots()
     colors = plt.get_cmap('tab20', num_configs)  # Change color palette
 
+    
+    labels_PLANINV = ['0', 'HC=0, Q=1', 'HC=0, Q=0.75', 'HC=0, Q=0.5', 'HC=1, Q=1', 'HC=1, Q=0.75', 'HC=1, Q=0.5']
     for config_idx in range(num_configs):
         values = net_production[config_idx]
-        ax.bar(x + config_idx * width, values, width, label=f'Escenario {config_idx}', color=colors(config_idx))
+        ax.bar(x + config_idx * width, values, width
+               , label  =  labels_PLANINV[config_idx]
+               # ,label=f'Escenario {config_idx}'
+               ,color=colors(config_idx))
 
     # Add labels, title, and legend
     ax.set_xlabel('Periodo de Tiempo', fontsize = 16)
@@ -313,7 +318,63 @@ def plotNet_Costes(X_results, sets, T, c):
     # ax.set_title('Inversión en cada periodo de tiempo', fontsize = 18)
     ax.set_xticks(x + width * (num_configs - 1) / 2)
     ax.set_xticklabels(x_labels)
-    ax.legend()
+    ax.legend(loc = 'upper right')
+
+    # Add vertical lines to separate time periods
+    for pos in x:
+        ax.axvline(pos + width * (num_configs - 1) / 2 + (x[1]-x[0])/2 , color='grey', linestyle='--')
+
+    # Show the plot
+    plt.show()
+    
+def plotNet_CostesLines(X_results, sets, T, c):
+    X_values = []
+    for i in sorted(sets):
+        t_values = []
+        for t in range(1, len(T)):
+            x = []
+            for j in range(len(X_results)):
+                x.append(X_results[j][i,t]*c[i])
+            t_values.append(x)   
+        X_values.append(t_values)
+
+    num_configs = len(X_values[0][0])
+    num_periods = len(T)-1 
+    net_production = np.zeros((num_configs, num_periods))
+
+    # Calculate the net production for each configuration for each period
+    for t in range(num_periods):
+        for config_idx in range(num_configs):
+            for item_values in X_values:
+                net_production[config_idx, t] += item_values[t][config_idx]
+
+    # Plot the net production
+    x_labels = [i for i in range(1, len(T))]  
+    x = np.arange(len(x_labels))  # Label locations
+    width = 0.7 / num_configs  # Width of the bars
+
+    fig, ax = plt.subplots()
+    colors = plt.get_cmap('tab20', num_configs)  # Change color palette
+
+    
+    labels_PLANINV = ['0', 'HC=0, Q=1', 'HC=0, Q=0.75', 'HC=0, Q=0.5', 'HC=1, Q=1', 'HC=1, Q=0.75', 'HC=1, Q=0.5']
+    colors_PLANINV = [(0.0, 0.0, 0.0), (0.0, 0.0, 0.545),  (0.0, 0.0, 1.0), (0.678, 0.847, 0.902), (0.545, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 0.5, 0.5)]
+    for config_idx in range(num_configs):
+        values = net_production[config_idx]
+        ax.plot(x + config_idx * width, values, marker = 'o',linestyle = '--'
+               , label  =  labels_PLANINV[config_idx]
+               # ,label=f'Escenario {config_idx}'
+               # ,color=colors(config_idx)
+               ,color= colors_PLANINV[config_idx]
+               )
+
+    # Add labels, title, and legend
+    ax.set_xlabel('Periodo de Tiempo', fontsize = 16)
+    ax.set_ylabel('Valor en Euros', fontsize = 16)
+    # ax.set_title('Inversión en cada periodo de tiempo', fontsize = 18)
+    ax.set_xticks(x + width * (num_configs - 1) / 2)
+    ax.set_xticklabels(x_labels)
+    ax.legend(loc = 'upper right')
 
     # Add vertical lines to separate time periods
     for pos in x:
@@ -350,11 +411,18 @@ def plotNetI_comprometido(X_results, sets, T, c_std):
     width = 0.7 / num_configs  # Width of the bars
 
     fig, ax = plt.subplots()
-    colors = plt.get_cmap('tab20', num_configs)  # Change color palette
+    colors = plt.get_cmap('tab10', num_configs)  # Change color palette
 
+    labels_PLANINV = ['0', 'HC=0, Q=1', 'HC=0, Q=0.75', 'HC=0, Q=0.5', 'HC=1, Q=1', 'HC=1, Q=0.75', 'HC=1, Q=0.5']
+    labels_PLANMOQVAR = ['I0=F0,rF=1,rC=1', 'I0=F0,rF=0.75,rC=1', 'I0=F0,rF=0.5,rC=1', 'I0=F0,rF=0.33,rC=1', 'I0=F0,rF=0,rC=1',
+                         'I0=F1,rF=1,rC=1', 'I0=F1,rF=0.75,rC=1', 'I0=F1,rF=0.5,rC=1', 'I0=F1,rF=0.33,rC=1', 'I0=F1,rF=0,rC=1']
     for config_idx in range(num_configs):
         values = net_production[config_idx]
-        ax.bar(x + config_idx * width, values, width, label=f'Escenario {config_idx}', color=colors(config_idx))
+        ax.bar(x + config_idx * width, values, width
+            #    , label=f'Escenario {config_idx}'
+            #    , label=labels_PLANINV[config_idx]
+               , label=labels_PLANMOQVAR[config_idx]
+               , color=colors(config_idx))
 
     # Add labels, title, and legend
     ax.set_xlabel('Periodo de Tiempo', fontsize = 16)
@@ -370,6 +438,7 @@ def plotNetI_comprometido(X_results, sets, T, c_std):
 
     # Show the plot
     plt.show()    
+
 
 def plotItem(X_results, T, item, titulo):
     X_values = []
@@ -865,11 +934,17 @@ def plot_route_production_comparison(routeProduction, x_values_list, T, K1, K3):
     # Obtener una paleta de colores
     cmap = plt.get_cmap('tab20')
 
+    labels_PLANINV = ['0', 'HC=0, Q=1', 'HC=0, Q=0.75', 'HC=0, Q=0.5', 'HC=1, Q=1', 'HC=1, Q=0.75', 'HC=1, Q=0.5']
+    labels_PLANMOQVAR = ['I0=F0,rF=1,rC=1', 'I0=F0,rF=0.75,rC=1', 'I0=F0,rF=0.5,rC=1', 'I0=F0,rF=0.33,rC=1', 'I0=F0,rF=0,rC=1',
+                         'I0=F1,rF=1,rC=1', 'I0=F1,rF=0.75,rC=1', 'I0=F1,rF=0.5,rC=1', 'I0=F1,rF=0.33,rC=1', 'I0=F1,rF=0,rC=1',
+                         ]
     # Crear el gráfico de barras
     for config_idx in range(n_configs):
         config_values = [route_config_values[route][config_idx] for route in routes]
         plt.bar(np.arange(len(routes)) + config_idx * width, config_values, width=width, color=cmap(config_idx % cmap.N), align='center'
-                , label=f'Escenario {config_idx}'
+                # , label=f'Escenario {config_idx}'
+                # , label = labels_PLANINV[config_idx]
+                , label = labels_PLANMOQVAR[config_idx]
                 )
 
     # Etiquetas y título del gráfico
@@ -878,7 +953,7 @@ def plot_route_production_comparison(routeProduction, x_values_list, T, K1, K3):
     # plt.title('Comparación de la cantidad total de unidades fabricadas por linea de producción')
     # plt.title('Cantidad total de unidades fabricadas por linea de producción', fontsize = 18)
     plt.xticks(np.arange(len(routes)) + width * (n_configs - 1) / 2, routes)
-    plt.legend()
+    plt.legend(loc = 'upper left')
 
     # Mostrar el gráfico
     plt.show()
@@ -1026,9 +1101,15 @@ def plot_I_compromised_MultipleEnv(c_std, I_list, T, K1, K2, K3):
     # Crear el gráfico de líneas
     fig, ax = plt.subplots(figsize=(12, 6))
 
+    colors_PLANINV = [(0.0, 0.0, 0.0), (0.0, 0.0, 0.545),  (0.0, 0.0, 1.0), (0.678, 0.847, 0.902), (0.545, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 0.5, 0.5)]
+    labels_PLANINV = ['0', 'HC=0, Q=1', 'HC=0, Q=0.75', 'HC=0, Q=0.5', 'HC=1, Q=1', 'HC=1, Q=0.75', 'HC=1, Q=0.5']
     # Plotear los datos para cada escenario
     for idx, Icomp in enumerate(Icompromised_list):
-        ax.plot(range(len(T)), Icomp, marker='o', linestyle='--', label=f'Escenario {idx+1}')
+        ax.plot(range(len(T)), Icomp, marker='o', linestyle='--'
+                , label = labels_PLANINV[idx]
+                , color = colors_PLANINV[idx]
+                # , label=f'Escenario {idx+1}'
+                )
 
     # Configurar la cuadrícula en el fondo
     ax.set_axisbelow(True)
@@ -1305,7 +1386,7 @@ if __name__ == "__main__":
     # plotNet(I_results, list(set(K1 + K3)), T)
     # plotNet_Costes(X_results, list(set(K1 + K3)), T, c1)
     # plotNet_Costes(Y_results, list(set(K2 + K3)), T, c2)
-    # plotNetI_comprometido([I_results[0]]+I_results[5:], K1 + K2 + K3, T, c_std)
+    plotNetI_comprometido(I_results[0:6]+I_results[10:], K1 + K2 + K3, T, c_std)
     # plotItem(Y_results, T, 62, "Unidades compradas por periodo del ítem 62")
     # plot_inventory(I_0, 0, T)
     # plot_inventory(I_results[0], 12, T)
@@ -1319,11 +1400,11 @@ if __name__ == "__main__":
     # plot_pie_chart_costs(c1, c2, X_results[0], Y_results[0], T, [], [], K3)
     # plot_pie_chart_invent(X_results[5], Y_results[5], T, [], [], K3)
     # plot_pie_chart_invent(X_results[0], Y_results[0], T, K1, list(set(K2)-{62}), K3)
-    # plot_route_production_comparison(routeProduction, [X_results[0]] + X_results[5:], T, K1, K3)
+    # plot_route_production_comparison(routeProduction, X_results[0:6]+X_results[10:], T, K1, K3)
     # plot_route_production_comparison_perT(routeProduction, [X_results[0]] + X_results[5:], T, K1, K3)
     # plot_I_compromised(c_std, I_results[0], I_0, T, K1, K2, K3)
     # plot_I_compromised_MultipleEnv(c_std, I_results, T, K1, K2, K3)
-    # plot_Opt_c2Mult(results['c2_multiplier'], results['ObjVal'], results['uds_fabricadas'])
+    plot_Opt_c2Mult(results['c2_multiplier'], results['ObjVal'], results['uds_fabricadas'])
     # generar_graficos_sectores_por_mes(Orders)
     # scatter_plot_costes(c1, c2, K1, K2, K3, X_results[0], Y_results[0], T)
     # scatter_plot_costes_Ud(c1, c2, K1, K2, K3)
